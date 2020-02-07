@@ -22,7 +22,8 @@ fetch_mappings <- function(node, mapping){
 #' @return X sample x feature matrix
 fetch_var <- function(node ,input_list, mapping_list, metainfo, main_layer = 1, sep = "___"){  
    
-  x <- c()
+  x <- NULL
+
   
   #iterate over all available mappings to fetch features across all levels 
   for (mapping_idx in 1:length(mapping_list) ) {
@@ -53,7 +54,12 @@ fetch_var <- function(node ,input_list, mapping_list, metainfo, main_layer = 1, 
     #if we have data to add
     if(ncol(data) != 0){
       colnames(data) <- paste0(mapping_name,sep,colnames(data) )
-      x <- cbind(x, data)
+      if(is.null(x)){
+	x <- data 
+	}else{
+	      x <- cbind(x,data)		
+		}
+
     }
   }
   
@@ -114,7 +120,7 @@ infer_network <- function(input_list, mapping_list, metainfo,  main_layer = 1, m
 
   node_list <- colnames(input_list[[main_layer]]) #iterating ofer node_list of main layer
   
-  foreach(node = node_list, .combine = 'rbind')  %do% {
+  foreach::foreach(node = node_list, .combine = 'rbind')  %do% {
     
     #get y and x for a given node
     var_list <- fetch_var(node, 

@@ -8,7 +8,7 @@
 #' calc_tau(x)
 calc_tau <- function(x){
   fr_norm <- calc_frobenius_norm(x)
-  10^(-fr_norm) 
+  10^(-1 *fr_norm) 
 }
 
 #' Calculate alpha based on frobenius norm and group information
@@ -27,7 +27,7 @@ calc_alpha <- function(x, group){
     tmp <-  calc_frobenius_norm(as.matrix(x[, which(group == g)]))
     fr_norm <- c( fr_norm, tmp )
   }
-  10^mean( -fr_norm, na.rm = T) 
+  10^mean( -1 * fr_norm, na.rm = T) 
 
 }
 
@@ -98,7 +98,7 @@ parsing_name <- function(string,sep="___"){
 #' @parameter folds_cv int - defining the amount of folds
 #' @return list containing lambda1.se and feature names excluding underpowered ones
 calc_cv_sgl <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE, seed_cv = 1234, folds_cv = 5){
-  
+
   error_cv    <- matrix(NA, ncol=100, nrow = folds_cv) # matrix storing cv errors. oem tests for 100 lambda values
   repeat_cv   <- TRUE
   
@@ -121,9 +121,9 @@ calc_cv_sgl <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE, seed
       train_y <- y[which(fold_idx != fold)]
       
       #remove underpowered features by testing the variance in training and test set
-      underpowered <- is_underpowered( test_x) |  is_underpowered( train_x)
-      
-      x <- x[ , !underpowered, with=FALSE ]
+      underpowered <- is_underpowered( test_x) |  is_underpowered( train_x)      
+
+      x <- x[ , !underpowered ]
       
       #restart cv if underpowered features were detected
       if( any( underpowered ))
@@ -175,8 +175,8 @@ calc_cv_sgl <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE, seed
 #' @return edge list for a given input y and x
 train_kimono_sgl  <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE, ...){ 
   
-  y <- data.table(scale(y))
-  x <- data.table(scale(x))
+  y <- scale(y)
+  x <- scale(x)
   
   # estimate best lambda and identify underpowered features 
   cv_result   <- calc_cv_sgl(y, x )
@@ -188,7 +188,7 @@ train_kimono_sgl  <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE
   lambda1.se  <- cv_result$lambda
   
   # exclude underpowered features and convert input to matrix
-  x <- x[,colnames(x) %in% feature_set, with = FALSE]
+  x <- x[,colnames(x) %in% feature_set, drop = FALSE]
   x <- as.matrix(x)
   y <- as.matrix(y) 
   
