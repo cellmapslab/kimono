@@ -23,17 +23,20 @@ ui <- fluidPage(
     ),
 
     mainPanel(
-        tableOutput("contents")
+        tableOutput("input_files"),
+        tableOutput("mapping")
     )
 
 
 
 )
 
+
+
 # Define server logic required
 server <- function(input, output) {
 
-    output$contents <- renderTable({
+    output$input_files <- renderTable({
         file <- input$input_file
         print(file$name)
 
@@ -48,7 +51,31 @@ server <- function(input, output) {
         for (i in 1:length(file$name)){
             x <- dim(read_delim(file$datapath[i], delim = " "))
             x <- append(x, file$name[i], after = 0)
+            print(x)
+            input_tab <- rbind(input_tab,x )
+        }
+        rownames(input_tab) <- NULL
+        colnames(input_tab) <- c("Filename", "Rows", "Columns")
 
+       input_tab
+    })
+
+    output$mapping <- renderTable({
+        file <- input$mapping_file
+        print(file$name)
+
+        ext <- tools::file_ext(file$datapath)
+
+
+        input_tab <- NULL
+        req(file)
+        validate(need(ext == c("csv","tsv"), "Please upload a csv or tsv file"))
+
+
+        for (i in 1:length(file$name)){
+            x <- dim(read_delim(file$datapath[i], delim = " "))
+            x <- append(x, file$name[i], after = 0)
+            print(x)
             input_tab <- rbind(input_tab,x )
         }
         rownames(input_tab) <- NULL
@@ -60,3 +87,6 @@ server <- function(input, output) {
 
 # Run the application
 shinyApp(ui = ui, server = server)
+
+
+
