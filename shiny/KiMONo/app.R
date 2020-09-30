@@ -17,10 +17,12 @@ ui <- fluidPage(
 
     sidebarPanel(
         fileInput("input_file", "Upload your different Omics Layers here", accept = c(".csv", ".tsv"), multiple= TRUE),
-
         fileInput("mapping_file", "Upload your Mapping Information here", accept = c(".csv", ".tsv"), multiple= TRUE),
+        radioButtons("delimitor_input", "Delimiter",
+                     choices = list("Space" = " ", "Tab" = "\t",
+                                    "Comma" = ","),selected = " "),
 
-    ),
+        ),
 
     mainPanel(
         tableOutput("input_files"),
@@ -49,7 +51,7 @@ server <- function(input, output) {
 
 
         for (i in 1:length(file$name)){
-            x <- dim(read_delim(file$datapath[i], delim = " "))
+            x <- dim(read_delim(file$datapath[i], delim = input$delimitor_input))
             x <- append(x, file$name[i], after = 0)
             print(x)
             input_tab <- rbind(input_tab,x )
@@ -73,7 +75,7 @@ server <- function(input, output) {
 
 
         for (i in 1:length(file$name)){
-            x <- dim(read_delim(file$datapath[i], delim = " "))
+            x <- dim(read_delim(file$datapath[i], delim = input$delimitor_input2))
             x <- append(x, file$name[i], after = 0)
             print(x)
             input_tab <- rbind(input_tab,x )
