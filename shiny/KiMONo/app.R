@@ -11,6 +11,7 @@ library(shiny)
 library(tidyverse)
 library(shiny)
 library(data.table)
+library(kimono)
 
 # Define UI for application
 
@@ -18,36 +19,49 @@ options(shiny.maxRequestSize = 30*1024^2)
 
 ui <- pageWithSidebar(
     headerPanel("Kimono"),
+
+    # Interface for the Sidebar
     sidebarPanel(
 
-        ## conditionalPanel() functions for selected tab
+        # Sidebar for first Tab: Upload of Input Files
         conditionalPanel(condition="input.tabselected==1",
                          fileInput("input_file", "Upload your different Omics Layers here", accept = c(".csv", ".tsv"), multiple= TRUE),
                          radioButtons("delimitor_input", "Delimiter",
-                                                         choices = list("Space" = " ", "Tab" = "\t","Comma" = ","),selected = " ")),
+                                                         choices = list("Space" = " ", "Tab" = "\t","Comma" = ","),selected = " "),
+                         uiOutput("selinput1")),
 
-
+        # Sidebar for second Tab: Upload of Mapping Files
         conditionalPanel(condition="input.tabselected==2",
                          fileInput("mapping_file", "Upload your Mapping Information here", accept = c(".csv", ".tsv"), multiple= TRUE),
                                   radioButtons("delimitor_input_2", "Delimiter",
                                                choices = list("Space" = " ", "Tab" = "\t",
                                                               "Comma" = ","),selected = " "),),
 
-
+        # Sidebar for third Tab: Choosing the Layers for each Mapping
         conditionalPanel(condition="input.tabselected==3", uiOutput("selmapping"),
-                         uiOutput("selinput1"),
                          uiOutput("selinput2"),
-                         actionButton("do", "Add Mapping Info"))
+                         actionButton("do", "Add Mapping Info"),
+                         actionButton("undo", "Delete current Mapping Info")),
+
+        # Sidebar for fourth Tab: Main Settings for Kimono and Calculation
+        conditionalPanel(condition="input.tabselected==4",
+                         sliderInput("minfeatures", "Minimun Features:",
+                                     min = 0, max = 20,
+                                     value = 2),
+                         actionButton("calculate", "Calculate Network")
+                         )
 
     ),
+
+    # Interface for the Main Page
     mainPanel(
-        # recommend review the syntax for tabsetPanel() & tabPanel() for better understanding
-        # id argument is important in the tabsetPanel()
-        # value argument is important in the tabPanle()
+        # Different Tabs that show different Outputs
         tabsetPanel(
             tabPanel("Input", value=1, tableOutput("input_files"), tableOutput("df_data_out")),
             tabPanel("Mapping", value=2,tableOutput("mapping") ),
             tabPanel("Metadata", value=3, tableOutput("user_data")),
+            tabPanel("Calculation", value = 4),
+
             id = "tabselected"
         )
     )
@@ -59,16 +73,41 @@ ui <- pageWithSidebar(
 
 server <- function(input, output) {
 
-    mynames <- c("a", "b")
-    values <- reactiveValues(df_data = NULL)
-    observeEvent(input$input_file, {
 
 
+    layers <- reactiveValues()
 
-        values[[mynames[1]]] <- read_delim(input$input_file$datapath[1], delim = " ")
+    toListen <- reactive({
+        list(input$input_file,input$delimitor_input)
     })
 
-    output$df_data_out <- renderTable(values[[mynames[1]]])
+
+    observeEvent( input$input_file ,{
+
+        filenames <- input$input_file$name
+        for(i in 1:length(filenames)){
+            layers[[filenames[i]]] <- read_delim(input$input_file$datapath[i], delim = input$delimitor_input)
+        }
+
+        print(isolate(reactiveValuesToList(layers)))
+
+
+    })
+
+    mappings <- reactiveValues()
+    observeEvent(input$mapping_file,{
+
+        filenames <- input$mapping_file$name
+        for(i in 1:length(filenames)){
+            mappings[[filenames[i]]] <- read_delim(input$mapping_file$datapath[i], delim = input$delimitor_input_2)
+        }
+
+        print(isolate(reactiveValuesToList(mappings)))
+
+    })
+
+
+
 
 
 
@@ -76,54 +115,68 @@ server <- function(input, output) {
     whichfiles <- reactiveValues()
 
      output$input_files <- renderTable({
-         file <- input$input_file
-         print(file$name)
-
-         ext <- tools::file_ext(file$datapath)
-
-
          input_tab <- NULL
-         req(file)
-         validate(need(ext == c("csv","tsv"), "Please upload a csv or tsv file"))
 
+         if(length(names(layers) >0)){
+         for (i in 1:length(names(layers))){
 
-         for (i in 1:length(file$name)){
-             x <- dim(read_delim(file$datapath[i], delim = input$delimitor_input))
-             x <- append(x, file$name[i], after = 0)
+             x <- dim(layers[[names(layers)[i]]])
+             x <- append(x, names(layers)[i], after = 0)
              print(x)
              input_tab <- rbind(input_tab,x )
+
          }
          rownames(input_tab) <- NULL
          colnames(input_tab) <- c("Filename", "Rows", "Columns")
+         whichfiles$input <- input_tab
+         input_tab
+         }
 
-        whichfiles$input <- input_tab
-        input_tab
      })
 
 
 
+
      output$mapping <- renderTable({
-         file <- input$mapping_file
-         print(file$name)
-
-         ext <- tools::file_ext(file$datapath)
 
 
-         input_tab <- NULL
-         req(file)
-         validate(need(ext == c("csv","tsv"), "Please upload a csv or tsv file"))
+         mapping_tab <- NULL
 
+         if(length(names(mappings) >0)){
+             for (i in 1:length(names(mappings))){
 
-         for (i in 1:length(file$name)){
-             x <- dim(read_delim(file$datapath[i], delim = input$delimitor_input_2))
-             x <- append(x, file$name[i], after = 0)
-             print(x)
-            input_tab <- rbind(input_tab,x )
+                 x <- dim(mappings[[names(mappings)[i]]])
+                 x <- append(x, names(mappings)[i], after = 0)
+                 print(x)
+                 mapping_tab <- rbind(mapping_tab,x )
+
+             }
+             rownames(mapping_tab) <- NULL
+             colnames(mapping_tab) <- c("Filename", "Rows", "Columns")
+             whichfiles$mapping <- mapping_tab
+             mapping_tab
          }
-         rownames(input_tab) <- NULL
-         colnames(input_tab) <- c("Filename", "Rows", "Columns")
-         whichfiles$mapping <- input_tab
-         input_tab
+         # file <- input$mapping_file
+         # print(file$name)
+         #
+         # ext <- tools::file_ext(file$datapath)
+         #
+         #
+         # input_tab <- NULL
+         # req(file)
+         # validate(need(ext == c("csv","tsv"), "Please upload a csv or tsv file"))
+         #
+         #
+         # for (i in 1:length(file$name)){
+         #     x <- dim(read_delim(file$datapath[i], delim = input$delimitor_input_2))
+         #     x <- append(x, file$name[i], after = 0)
+         #     print(x)
+         #    input_tab <- rbind(input_tab,x )
+         # }
+         # rownames(input_tab) <- NULL
+         # colnames(input_tab) <- c("Filename", "Rows", "Columns")
+         # whichfiles$mapping <- input_tab
+         # input_tab
      })
 
 
@@ -131,7 +184,7 @@ server <- function(input, output) {
 
      output$selinput1 <- renderUI({
          selectInput(inputId = "selection1",
-                     label = "Select Layer",
+                     label = "Select the Main Layer",
                      selected = whichfiles$input[,1],
                      choices = whichfiles$input[,1])
      })
@@ -152,23 +205,32 @@ server <- function(input, output) {
      })
 
 
+
+
+     meta <- reactiveValues(info = NULL)
+
      observeEvent(input$do, {
-         user_data <- data.frame(
-             "mapping_file" =input$mapping,
-             "Layer_1" =input$selection1,
-             "Layer_2" =input$selection2,
-             stringsAsFactors = FALSE
-         )
 
-         # ptdata = merge(pub_data,user_data,by = c("gender","agemo","racethn"), all = TRUE)
-         # names(ptdata)<-tolower(names(ptdata))
-         # ptdata<-ptdata %>%
-         #     mutate(corrected_nutrient = nutrient/coef)
+         meta$info <- rbind(meta$info, c( input$mapping, input$selection1, input$selection2) )
+         print(meta$info)
+         colnames(meta$info) <- c("mapping_file", "Layer_1", "Layer_2")
+         output$user_data <- renderTable(meta$info)
 
-         output$user_data <- renderTable(user_data)
-         #output$FinalData <- DT::renderDataTable(DT::datatable(ptdata))
      })
 
+     observeEvent(input$undo,{
+         meta$info <- NULL
+
+     })
+
+     observeEvent(input$calculate,{
+
+
+
+
+
+
+     })
 
  }
 
