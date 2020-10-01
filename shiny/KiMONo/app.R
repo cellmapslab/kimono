@@ -11,9 +11,17 @@ library(shiny)
 library(tidyverse)
 library(shiny)
 library(data.table)
-library(kimono)
+library(foreach)
+library(sourcetools)
+library(data.table)
+
+#source("R/kimono.R")
+#source("R/infer_sgl_model.R")
+#source("R/utility_functions.R")
 
 # Define UI for application
+setwd("/Users/felicitastengen/Helmholtz_2/kimono/")
+#source("20191121_kimono_test.R")
 
 options(shiny.maxRequestSize = 30*1024^2)
 
@@ -58,7 +66,7 @@ ui <- pageWithSidebar(
         # Different Tabs that show different Outputs
         tabsetPanel(
             tabPanel("Input", value=1, tableOutput("input_files"), tableOutput("df_data_out")),
-            tabPanel("Mapping", value=2,tableOutput("mapping") ),
+            tabPanel("Mapping", value=2,tableOutput("mapping_files") ),
             tabPanel("Metadata", value=3, tableOutput("user_data")),
             tabPanel("Calculation", value = 4),
 
@@ -74,19 +82,16 @@ ui <- pageWithSidebar(
 server <- function(input, output) {
 
 
-
+    # observes the Input Files that are uploaded by the User
+    # Each file is read into a Dataframe and saved in the reactive Values Object
     layers <- reactiveValues()
-
-    toListen <- reactive({
-        list(input$input_file,input$delimitor_input)
-    })
-
 
     observeEvent( input$input_file ,{
 
         filenames <- input$input_file$name
         for(i in 1:length(filenames)){
-            layers[[filenames[i]]] <- read_delim(input$input_file$datapath[i], delim = input$delimitor_input)
+            layers[[filenames[i]]] <- as.data.table(read_delim(input$input_file$datapath[i], delim = input$delimitor_input))
+            layers[[filenames[i]]] <- layers[[filenames[i]]][,-1,with=FALSE]
         }
 
         print(isolate(reactiveValuesToList(layers)))
@@ -94,12 +99,15 @@ server <- function(input, output) {
 
     })
 
+
+    # observes the Input Files that are uploaded by the User
+    # Each file is read into a Dataframe and saved in the reactive Values Object
     mappings <- reactiveValues()
     observeEvent(input$mapping_file,{
 
         filenames <- input$mapping_file$name
         for(i in 1:length(filenames)){
-            mappings[[filenames[i]]] <- read_delim(input$mapping_file$datapath[i], delim = input$delimitor_input_2)
+            mappings[[filenames[i]]] <- as.data.table(read_delim(input$mapping_file$datapath[i], delim = input$delimitor_input_2))
         }
 
         print(isolate(reactiveValuesToList(mappings)))
@@ -112,9 +120,13 @@ server <- function(input, output) {
 
 
 
-    whichfiles <- reactiveValues()
 
-     output$input_files <- renderTable({
+    # Iterates over the input Files in the reactive layers object and calculates a new dataframe
+    # For each uploaded File it shows the filename and the dimensions when read ito a Dataframe
+    # this table is saved in the reactive Value whichfiles object and also directly generated as output
+    # by the renderTable() Function
+    whichfiles <- reactiveValues()
+    output$input_files <- renderTable({
          input_tab <- NULL
 
          if(length(names(layers) >0)){
@@ -136,10 +148,12 @@ server <- function(input, output) {
 
 
 
+    # Iterates over the Mapping Files in the reactive layers object and calculates a new dataframe
+    # For each uploaded File it shows the filename and the dimensions when read ito a Dataframe
+    # this table is saved in the reactive Value whichfiles object and also directly generated as output
+    # by the renderTable() Function
 
-     output$mapping <- renderTable({
-
-
+     output$mapping_files <- renderTable({
          mapping_tab <- NULL
 
          if(length(names(mappings) >0)){
@@ -156,32 +170,12 @@ server <- function(input, output) {
              whichfiles$mapping <- mapping_tab
              mapping_tab
          }
-         # file <- input$mapping_file
-         # print(file$name)
-         #
-         # ext <- tools::file_ext(file$datapath)
-         #
-         #
-         # input_tab <- NULL
-         # req(file)
-         # validate(need(ext == c("csv","tsv"), "Please upload a csv or tsv file"))
-         #
-         #
-         # for (i in 1:length(file$name)){
-         #     x <- dim(read_delim(file$datapath[i], delim = input$delimitor_input_2))
-         #     x <- append(x, file$name[i], after = 0)
-         #     print(x)
-         #    input_tab <- rbind(input_tab,x )
-         # }
-         # rownames(input_tab) <- NULL
-         # colnames(input_tab) <- c("Filename", "Rows", "Columns")
-         # whichfiles$mapping <- input_tab
-         # input_tab
+
      })
 
+    #' @TODO BUG if only one file is uploaded than the dropdown does not work - Exception should be introduced
 
-
-
+    # Dropdown Selection of the Input File Names that were uploaded by the user that can be accesed in UI
      output$selinput1 <- renderUI({
          selectInput(inputId = "selection1",
                      label = "Select the Main Layer",
@@ -189,6 +183,7 @@ server <- function(input, output) {
                      choices = whichfiles$input[,1])
      })
 
+     # Dropdown Selection of the Input File Names that were uploaded by the user that can be accesed in UI
      output$selinput2 <- renderUI({
          selectInput(inputId = "selection2",
                      label = "Select Layer",
@@ -196,7 +191,7 @@ server <- function(input, output) {
                      choices = whichfiles$input[,1])
      })
 
-
+     # Dropdown Selection of the Mapping File Names that were uploaded by the user that can be accesed in UI
      output$selmapping <- renderUI({
          selectInput(inputId = "mapping",
                      label = "Select Mapping File",
@@ -207,6 +202,8 @@ server <- function(input, output) {
 
 
 
+     # observes the Button and adds the information from the dropdown menus to a dataframe that is saved in the
+     # meta reactive Value object
      meta <- reactiveValues(info = NULL)
 
      observeEvent(input$do, {
@@ -218,18 +215,36 @@ server <- function(input, output) {
 
      })
 
+     # Clears the whole DataFrame
      observeEvent(input$undo,{
          meta$info <- NULL
 
      })
 
+     #' @TODO Input to Kimono and upload the resulting DataFrame to the User Interface
      observeEvent(input$calculate,{
 
+         mymeta <- as_tibble(isolate(meta$info))
+
+        print(names(layers))
+        #print(mymeta$Layer_2)
+        mymeta$layernumber <- match(mymeta$Layer_2, names(layers))
+        mymeta <- mymeta[match(names(mappings), mymeta$mapping_file),]
+
+        metainfo <- data.frame('ID' = names(mappings), 'main_to' = mymeta$layernumber)
+        omicdf <- isolate(reactiveValuesToList(layers))
+        mappingdf <- isolate(reactiveValuesToList(mappings))
+        mininput <- input$minfeatures
+        mainlayer <- match(input$selection1, names(layers))
+
+        print(metainfo)
+        print(omicdf)
+        print(mappingdf)
+        print(mainlayer)
+        print(mininput)
 
 
-
-
-
+        print(kimono(input_list = omicdf, mapping_list = mappingdf,metainfo = metainfo, main_layer = main_layer, min_features = mininput ))
      })
 
  }
