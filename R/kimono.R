@@ -1,99 +1,3 @@
-stability_select <- function(x,y, target, nseeds = 50){
-
-  #Initialize the Seeds and empty Matrix and Vectors for mse and rsquared of length 100
-  seeds <- 1:nseeds
-
-  mse_values <- rep(NA, nseeds)
-  rsquared_values <- rep(NA, nseeds)
-
-  # Groupsparse does not always return all features - therefore we need a vector with all the names
-  # and all the relations to calculate the stability selection
-
-  colnames <- colnames(x)
-  names <- sapply(colnames, FUN =function(x) {
-    split <- unlist(str_split(string = x, pattern = "___")[[1]][2])
-    return(split)
-  })
-  names <- c("(Intercept)", unname(names))
-  art <- sapply(colnames, FUN =function(x) {
-    split <- unlist(str_split(string = x, pattern = "___")[[1]][1])
-    return(split)
-  })
-  art <- c("(Intercept)", unname(art))
-
-
-
-  coef_matrix <- c()
-
-  # Iterate over each of the seeds and set the seed
-  for(i in 1:nseeds){
-
-
-    # Based on the Seed calculate the Cross Validation to determine the best lambda
-    # and calculate the best final fit
-
-
-    fit <- train_kimono_sgl(y,x, seed_cv = seeds[i])
-    #print(fit)
-
-    # For some seeds groupsparse does not return a model these have to be skipped
-    if(is.null(fit)){
-      mse_values[i] <- NA
-      rsquared_values[i]<- NA
-
-      next
-    }
-    fit <- fit %>% rename(r_squared = performance )
-
-    # generate a boolean vector with true values for the features that have an influence
-    imp_features <- fit %>% filter(value != 0) %>% pull(predictor)
-    fit_features <- names %in% imp_features
-
-
-    # Calculate the logical vector which features are not 0 in the model
-    # bind this vector to the coefficient matrix
-
-    #coef_matrix <- base::cbind(coef_matrix, unname(as.matrix(fit[,"value"]!=0)) )
-    coef_matrix <- base::cbind(coef_matrix, fit_features)
-
-    # Calculate R-Squared and MSE by comparing real values to the values predicted by the model
-    #y_hat <- as.vector(predict(fit, s =best_lambda, newx=x))
-    mse_values[i] <- fit$mse[1]
-    rsquared_values[i]<- fit$r_squared[1]
-
-  }
-
-  rownames(coef_matrix) <- names
-
-  #print(coef_matrix)
-
-
-  # Dataframe with columns of the target and predictor
-  # The value is the frequency of a feature being included in the different seed models
-  # Overall R-Squared and MSE are the averages of all R-Squared and MSEs of the different seed models
-  # Selected R-Squared and MSE are the averages of the seed models where at least one feature was selected
-
-  fit_df <- tibble(
-    target = rep(target, nrow(coef_matrix)),
-    predictor = rownames(coef_matrix),
-    value = rowSums(coef_matrix)/ncol(coef_matrix),
-    nr_of_col = ncol(coef_matrix),
-    overall_rsq = mean(rsquared_values, na.rm = T),
-    selected_rsq = mean(rsquared_values[colSums(coef_matrix) != 1],  na.rm=T),
-    overall_mse = mean(mse_values, na.rm= T),
-    selected_mse = mean(mse_values[colSums(coef_matrix) != 1], na.rm =T),
-  )
-
-  fit_df$relation = art
-
-
-  return(fit_df)
-
-}
-
-
-
-
 
 
 #' extracting the relevant mapping information
@@ -215,18 +119,27 @@ is_valid <- function( x, min_features  ){
 
 #' Infers a model for each node in the main layer
 #'
-#'
 #' @param input_list - list of omics data. First list element will be used as predictor
 #' @param mapping_list  - list of mappings between each data type one
 #' @param metainfo  - table of relation between mappings and input list
 #' @param main_layer - which input data set represents the main layer (default = 1)
 #' @param min_features - autoexclude models with less than 2 features (default = 2)
+#' @param sel_iterations - run stability selection, defines number of iterations. if !=0 it will perform stability selection
+#' @param core - to run network inference in parallel
 #' @return a network in form of an edge table
-infer_network <- function(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2, stab_sel = FALSE) {
+infer_network <- function(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2, sel_iterations = 0, core = 1  ) {
+
+
+  cl <- parallel::makeCluster(core)
+  doParallel::registerDoParallel(cl)
 
   node_list <- colnames(input_list[[main_layer]]) #iterating ofer node_list of main layer
 
-  foreach(node = node_list, .combine = 'rbind')  %do% {
+  result <- foreach(node = node_list, .combine = 'rbind', .packages = 'kimono')  %dopar% {
+
+    #source(file = '~/projects/2020_moni/R_package/git/kimono/R/infer_sgl_model.R',local = T)
+    #source(file = '~/projects/2020_moni/R_package/git/kimono/R/utility_functions.R',local = T)
+    #source(file = '~/projects/2020_moni/R_package/git/kimono/R/kimono.R',local = T)
 
     #get y and x for a given node
     var_list <- fetch_var(node,
@@ -244,16 +157,16 @@ infer_network <- function(input_list, mapping_list, metainfo,  main_layer = 1, m
     #run model in case the model bugs out catch it
     possible_error <- tryCatch(
       {
-        if(stab_sel == FALSE){
-          subnet <- train_kimono_sgl(var_list$y,var_list$x )
+        if(sel_iterations != 0){
+          subnet <- stability_selection( var_list$y, var_list$x,   sel_iterations )
         }
         else{
-        subnet <- stability_select(x = var_list$x, y = var_list$y, target = node )
+          subnet <- train_kimono_sgl(var_list$y, var_list$x )
         }
         FALSE
       },
-      error=function(cond) {TRUE},
-      warning=function(cond) {TRUE}
+      error = function(cond) {TRUE},
+      warning = function(cond) {TRUE}
     )
 
     if(possible_error)
@@ -262,16 +175,13 @@ infer_network <- function(input_list, mapping_list, metainfo,  main_layer = 1, m
     if(is.null(subnet))
        return( )
 
+    data.table('target' = node, subnet)
 
-    if(stab_sel==F){
-    data.table('target'=node, subnet)
-    }
-    else{
-    subnet
-    }
   }
-
+  parallel::stopCluster(cl)
+  return(result)
 }
+
 
 #' Run Kimono - Knowledge-guIded Multi-Omic Netowrk inference
 #'
@@ -280,6 +190,7 @@ infer_network <- function(input_list, mapping_list, metainfo,  main_layer = 1, m
 #' @import dplyr
 #' @import foreach
 #' @import oem
+#' @import doParallel
 #' @param input_list - list of omics data. First list element will be used as predictor
 #' @param mapping_list  - list of mappings between each data type one
 #' @param main_layer - which input data set represents the main layer (default = 1)
@@ -287,12 +198,13 @@ infer_network <- function(input_list, mapping_list, metainfo,  main_layer = 1, m
 #' @param core - if core != 1 kimono will perform an parallell computation
 #' @return a network in form of an edge table
 #' @export
-kimono <- function(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2,stab_sel = FALSE ,...){
+kimono <- function(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2, sel_iterations = 0 , core = 1, ...){
 
-  result <- infer_network(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2, stab_sel = stab_sel)
+  result <- infer_network(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2, sel_iterations , core = 1, ...)
 
-  if(nrow(result) == 0)
+  if( nrow(result) == 0)
     warning('model was not able to infer any associations')
+
 
   result
 }

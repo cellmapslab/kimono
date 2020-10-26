@@ -10,6 +10,8 @@ kimono(
   metainfo,
   main_layer = 1,
   min_features = 2,
+  sel_iterations = 0,
+  core = 1,
   ...
 )
 }

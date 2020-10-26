@@ -1,12 +1,20 @@
 Package: kimono
-Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: Knowledge-guIded Multi-Omic NetOwrk inference
+Version: 0.0.1.0006
+Authors@R: 
+    person(given = "Christoph",
+           family = "Ogris",
+           role = c("aut", "cre"),
+           email = "christoph.ogris@helmholtz-muenchen.de")
+Description: Infers a multi-level network based on large heterogeneous paired data using prior information.
+License: GNU GPLv3
 Encoding: UTF-8
 LazyData: true
+Depends:
+    R (>= 3.4.4),
+    data.table,
+    dplyr,
+    oem,
+    foreach,
+    doParallel
 RoxygenNote: 7.0.2

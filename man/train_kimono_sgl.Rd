@@ -4,7 +4,14 @@
 \alias{train_kimono_sgl}
 \title{Calculate crossvalidation to estimate lambda1.se & identify potential underpowered features}
 \usage{
-train_kimono_sgl(y, x, model = "sparse.grp.lasso", intercept = TRUE, ...)
+train_kimono_sgl(
+  y,
+  x,
+  model = "sparse.grp.lasso",
+  intercept = TRUE,
+  seed_cv = 1234,
+  ...
+)
 }
 \value{
 edge list for a given input y and x

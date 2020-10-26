@@ -9,7 +9,9 @@ infer_network(
   mapping_list,
   metainfo,
   main_layer = 1,
-  min_features = 2
+  min_features = 2,
+  sel_iterations = 0,
+  core = 1
 )
 }
 \arguments{
@@ -22,6 +24,10 @@ infer_network(
 \item{main_layer}{- which input data set represents the main layer (default = 1)}
 
 \item{min_features}{- autoexclude models with less than 2 features (default = 2)}
+
+\item{sel_iterations}{- run stability selection, defines number of iterations. if !=0 it will perform stability selection}
+
+\item{core}{- to run network inference in parallel}
 }
 \value{
 a network in form of an edge table

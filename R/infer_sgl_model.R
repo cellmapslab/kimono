@@ -3,10 +3,9 @@
 #'
 #' @parameter x matrix/dataframe. must have at least rows & cols > 2
 #' @return Frobenius norm of x
-#' @examples
-#' x <- matrix(1:20,5,4)
-#' calc_tau(x)
 calc_tau <- function(x){
+  # x <- matrix(1:20,5,4)
+  # calc_tau(x)
   fr_norm <- calc_frobenius_norm(x)
   10^(-fr_norm)
 }
@@ -16,11 +15,10 @@ calc_tau <- function(x){
 #' @parameter x matrix/dataframe. must have at least rows & cols > 2
 #' @parameter groups, vector of group numbers
 #' @return Frobenius norm of x
-#' @examples
-#' x <- matrix(1:20,5,4)
-#' group <- c(1,1,2,2)
-#' calc_alpha(x, group)
 calc_alpha <- function(x, group){
+  # x <- matrix(1:20,5,4)
+  # group <- c(1,1,2,2)
+  # calc_alpha(x, group)
 
   fr_norm <- c()
   for (g in unique(group)) {
@@ -47,10 +45,9 @@ calc_lambda1.se <- function(lambdas,error_cv){
 #'
 #' @parameter col names vector like
 #' @return vector of numeric groups
-#' @examples
-#' names <- c("methylation___cg0123123","rppa___MTOR")
-#' infer_prior_groups(names)
 parse_prior_groups <- function(names, sep="\\___"){
+  # names <- c("methylation___cg0123123","rppa___MTOR")
+  # infer_prior_groups(names)
   as.numeric( as.factor( do.call( rbind, strsplit( names , split = sep ))[,1]))
 }
 
@@ -99,7 +96,7 @@ parsing_name <- function(string,sep="___"){
 #' @return list containing lambda1.se and feature names excluding underpowered ones
 calc_cv_sgl <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE, seed_cv = 1234, folds_cv = 5){
 
-  error_cv    <- matrix(NA, ncol=100, nrow = folds_cv) # matrix storing cv errors. oem tests for 100 lambda values
+  error_cv    <- matrix(NA, ncol = 100, nrow = folds_cv) # matrix storing cv errors. oem tests for 100 lambda values
   repeat_cv   <- TRUE
 
   while (repeat_cv) {
@@ -172,8 +169,10 @@ calc_cv_sgl <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE, seed
 #' @parameter y data.table - feature to predict
 #' @parameter X data.table - input features with prior names attached to features
 #' @parameter model string - which model to train. currently only sparse group lasso tested
+#' @parameter intercept - intercept only model
+#' @parameter seed - seed of model
 #' @return edge list for a given input y and x
-train_kimono_sgl  <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE, ..., seed_cv = 1234){
+train_kimono_sgl  <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE, seed_cv = 1234, ...){
 
   y <- data.table(scale(y))
   x <- data.table(scale(x))
@@ -218,7 +217,7 @@ train_kimono_sgl  <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE
 
   covariates  <- rownames(fit$beta$sparse.grp.lasso)
   beta        <- as.vector(fit$beta$sparse.grp.lasso)
-  performance <- calc_r_square(y, y_hat )
+  r_squared <- calc_r_square(y, y_hat )
   mse <- calc_mse(y,y_hat)
 
   #return c() if fit is an intercept only models
@@ -227,12 +226,81 @@ train_kimono_sgl  <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE
 
   prefix_covariates <- parsing_name(covariates)
 
-  data.frame("predictor"=prefix_covariates$id,
+  tibble("predictor"=prefix_covariates$id,
                       "value"=beta,
-                      "performance"= performance,
+                      "r_squared"= r_squared,
                       "mse"=mse,
                       "relation"=prefix_covariates$prefix
                       )
+}
+
+
+#' Stability selection and summary of multiple runs
+#'
+#' @param y data.table - feature to predict
+#' @param X data.table - input features with prior names attached to features
+#' @param nseeds - specifies how many iterations to run
+#' @return edge list for a given input y and x, and statistics on multiple runs
+stability_selection <- function(y, x, nseeds){
+
+  #Initialize the Seeds and empty Matrix and Vectors for mse and rsquared of length 100
+  seeds <- 1:nseeds
+
+
+  df_values  <- matrix(ncol = nseeds, nrow = ncol(x) + 1 , 0) #+1 accounting for intercept
+  df_mse <- rep(NA,nseeds)
+  df_r_squared <- rep(NA,nseeds)
+
+  # Groupsparse does not always return all features - therefore we need a vector with all the names
+  # and all the relations to calculate the stability selection
+
+  tmp_names <- do.call(rbind , strsplit(colnames(x),'___'))
+  idx <- data.frame('id' = 1:(ncol(x) + 1),
+                    'merged' = c('(Intercept)___(Intercept)',colnames(x)),
+                    'names' = c('(Intercept)',tmp_names[,2]),
+                    'relation' = c('(Intercept)',tmp_names[,1])
+  )
+
+  # Iterate over each of the seeds and set the seed
+  for( i in 1:nseeds){
+
+    # Based on the Seed calculate the Cross Validation to determine the best lambda
+    # and calculate the best final fit
+    fit <- train_kimono_sgl(y,x, seed_cv = seeds[i])
+
+    # For some seeds groupsparse does not return a model these have to be skipped
+    if(is.null(fit)){
+      df_mse[,i] <- rep(NA,nseeds)
+      df_r_squared[,i] <- rep(NA,nseeds)
+      df_values[,i] <- rep(NA,nseeds)
+
+      next
+    }
+
+    fit <- cbind(fit, 'merged' = paste(fit$relation,fit$predictor,sep = '___'))
+    fit <- merge(idx, fit, by='merged', all.x = TRUE )
+
+    df_mse[i] <-  fit$mse[1]
+    df_r_squared[i] <-  fit$r_squared[1]
+    df_values[,i] <-  fit$value
+  }
+
+  # Dataframe with columns   predictor
+  # The value is the frequency of a feature being included in the different seed models
+  # Overall R-Squared and MSE are the averages of all R-Squared and MSEs of the different seed models
+  # Selected R-Squared and MSE are the averages of the seed models where at least one feature was selected
+
+  tibble(
+    'predictor' =  idx$names,
+    'relation' =  idx$relation,
+    'sel_freq' = (nseeds-apply(df_values,1,function(x){sum(is.na(x))}))/nseeds,
+    'mean_value' = rowMeans(df_values, na.rm = T),
+    'sd_value' = apply(df_values,1,function(x){sd(x,na.rm = T)}),
+    'mean_rsq' = mean(df_r_squared, na.rm = T),
+    'sd_rsq' = sd(df_r_squared, na.rm = T),
+    'mean_mse' = mean(df_mse, na.rm = T),
+    'sd_mse' = sd(df_mse, na.rm = T)
+  )
 }
 
 #for debugging purpose only

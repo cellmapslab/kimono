@@ -16,8 +16,6 @@ fetch_var(
 \arguments{
 \item{node}{,}
 
-\item{input_list}{,}
-
 \item{mapping_list}{,}
 
 \item{main_layer}{- default = 1}
