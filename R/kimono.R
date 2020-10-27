@@ -198,9 +198,9 @@ infer_network <- function(input_list, mapping_list, metainfo,  main_layer = 1, m
 #' @param core - if core != 1 kimono will perform an parallell computation
 #' @return a network in form of an edge table
 #' @export
-kimono <- function(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2, sel_iterations = 0 , core = 1, ...){
+kimono <- function(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2, sel_iterations = 0 , core =1, ...){
 
-  result <- infer_network(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2, sel_iterations , core = 1, ...)
+  result <- infer_network(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2, sel_iterations , core, ...)
 
   if( nrow(result) == 0)
     warning('model was not able to infer any associations')
