@@ -40,3 +40,6 @@ install_github("cellmapslab/kimono")
 library(kimono)
 ```
 
+### Installing dependencies CentOS
+#### oem
+ CentOS needs a different version of RcppArmadillo(https://www.gitmemory.com/RcppCore) -> install.packages("RcppArmadillo", repos="https://rcppcore.github.io/drat")
