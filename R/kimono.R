@@ -137,7 +137,7 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
       return( )
 
     if(is.null(subnet))
-       return( )
+      return( )
 
     data.table('target' = strsplit(node_name,'___')[[1]][2], subnet)
 
