@@ -1,6 +1,3 @@
-
-
-
 #' using the prior information to fetsh the right data for X
 #'
 #' @param node ,
@@ -74,9 +71,7 @@ is_valid <- function( x, min_features  ){
 #' Infers a model for each node in the main layer
 #'
 #' @param input_list - list of omics data. First list element will be used as predictor
-#' @param mapping_list  - list of mappings between each data type one
-#' @param metainfo  - table of relation between mappings and input list
-#' @param main_layer - which input data set represents the main layer (default = 1)
+#' @param prior_network - prior network
 #' @param min_features - autoexclude models with less than 2 features (default = 2)
 #' @param sel_iterations - run stability selection, defines number of iterations. if !=0 it will perform stability selection
 #' @param core - to run network inference in parallel
@@ -98,14 +93,7 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
 
   cl <- parallel::makeCluster(1)
   doParallel::registerDoParallel(cl)
-  result <- foreach(node_name = V(prior_network)$name[1:10], .combine = 'rbind', .packages = 'kimono')  %dopar% {
-
-
-    library(igraph)
-    source('~/projects/2020_moni/R_package/git/kimono/R/infer_sgl_model.R')
-    source('~/projects/2020_moni/R_package/git/kimono/R/kimono.R')
-    source('~/projects/2020_moni/R_package/git/kimono/R/utility_functions.R')
-
+  result <- foreach(node_name = V(prior_network)$name, .combine = 'rbind', .packages = 'kimono')  %dopar% {
 
     # can't pass on a node in foreach therefore we have to reselect it here
     #get y and x for a given node
@@ -155,9 +143,9 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
 #' @import foreach
 #' @import oem
 #' @import doParallel
+#' @import igraph
 #' @param input_list - list of omics data. First list element will be used as predictor
-#' @param mapping_list  - list of mappings between each data type one
-#' @param main_layer - which input data set represents the main layer (default = 1)
+#' @param prior_network  - igraph with prior information
 #' @param min_features - autoexclude models with less than 2 features (default = 2)
 #' @param core - if core != 1 kimono will perform an parallell computation
 #' @return a network in form of an edge table
