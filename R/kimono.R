@@ -1,19 +1,5 @@
 
 
-#' extracting the relevant mapping information
-#'
-#' @param node , String
-#' @param mapping  ,  data.table with ids in thecolumns 1:2
-#' @return vector of feature names
-fetch_mappings <- function(node, mapping){
-
-  colnames(mapping) <- c('V1','V2')
-  #extract mapped features
-  features <- rbind(  subset( mapping, V1  == node)[, 2],
-                      subset( mapping, V2  == node)[, 1, with=FALSE],
-                      use.names=FALSE)
-  unique( as.vector( as.matrix( features ) ) )
-}
 
 #' using the prior information to fetsh the right data for X
 #'
@@ -22,61 +8,29 @@ fetch_mappings <- function(node, mapping){
 #' @param mapping_list ,
 #' @param main_layer - default = 1
 #' @return X sample x feature matrix
-fetch_var <- function(node ,input_list, mapping_list, metainfo, main_layer = 1, sep = "___"){
+fetch_var <- function(node_name , prior_network, input_data){
 
-  x <- c()
-  #print(paste("Node", node, sep = " "))
-  #print(paste("Main Layer ",main_layer))
+  node <- V(prior_network)[node_name]
 
-  #iterate over all available mappings to fetch features across all levels
-  for (mapping_idx in 1:length(mapping_list) ) {
-    #print(mapping_idx)
+  y <- data.table()
+  y_idx <- colnames(input_data[[node$layer]]) %in% node_name
 
-    mapping_to    <- metainfo$main_to[mapping_idx]  # mapping main layer to X
-    mapping_name  <- metainfo$ID[mapping_idx]       # mapping name
-
-    #print(mapping_to)
-    #print(mapping_name)
-
-    #print(input_list[[mapping_to]])
-
-    all_features <- colnames(input_list[[ mapping_to ]]) # all possible input features
-    #print(all_features)
-
-    #if a mapping_list is NULL we map all features (i.e. for clinical data)
-    if( ncol( mapping_list[[mapping_idx]] ) != 0 ){
-        features <- fetch_mappings(node , mapping_list[[mapping_idx]] )
-    }else{
-        features <- all_features
-    }
-
-    # if main layer is having a prior to itself it might happen that y is in x
-    if( mapping_to == main_layer )
-      features <- features[features !=  node]
-
-    #check if there are actually features left
-    if(length(features) == 0)
-      next
-
-    #print(features)
-    #extract relevant data
-    data <- input_list[[ mapping_to ]][, features[features %in% all_features] , with = FALSE ]
-
-
-
-    #if we have data to add
-    if(ncol(data) != 0){
-      colnames(data) <- paste0(mapping_name,sep,colnames(data) )
-      x <- cbind(x, data)
-    }
+  if(any(y_idx)){
+    y <- input_data[[node$layer]][,..y_idx,with=FALSE]
+  }else{
+    return()
   }
 
-  #print(x)
-
-  y <- input_list[[main_layer]][ , node, with=FALSE]
+  x <- data.table()
+  features <- neighbors(prior_network, node$name, mode = c("all"))
+  for (i in 1:length(input_data)) {
+    x_idx <- colnames(input_data[[i]]) %in% features$name
+    x <- cbind(x,input_data[[i]][,..x_idx,with=FALSE])
+  }
 
   list("y"=y,
        "x"=x)
+
 }
 
 #' remove na, scale
@@ -127,25 +81,35 @@ is_valid <- function( x, min_features  ){
 #' @param sel_iterations - run stability selection, defines number of iterations. if !=0 it will perform stability selection
 #' @param core - to run network inference in parallel
 #' @return a network in form of an edge table
-infer_network <- function(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2, sel_iterations = 0, core = 1  ) {
+infer_network <- function(input_data, prior_network,  min_features = 2, sel_iterations = 0, core = 1, ...  ) {
 
+  #preprocess input data
+  for (i in names(input_data)) {
+    colnames(input_data[[i]]) <- paste(i,colnames(input_data[[i]]),sep='___')
+  }
 
-  cl <- parallel::makeCluster(core)
+  #check if mapping exists for all data types
+  prior_missing <- !(names(input_data) %in% unique(V(prior_network)$layer))
+  if(any(prior_missing)){
+    prior_missing <- names(input_data)[prior_missing]
+  }
+
+  #TODO: check if number of features are too many for inference
+
+  cl <- parallel::makeCluster(1)
   doParallel::registerDoParallel(cl)
+  result <- foreach(node_name = V(prior_network)$name[1:10], .combine = 'rbind', .packages = 'kimono')  %dopar% {
 
-  node_list <- colnames(input_list[[main_layer]]) #iterating ofer node_list of main layer
 
-  result <- foreach(node = node_list, .combine = 'rbind', .packages = 'kimono')  %dopar% {
+    library(igraph)
+    source('~/projects/2020_moni/R_package/git/kimono/R/infer_sgl_model.R')
+    source('~/projects/2020_moni/R_package/git/kimono/R/kimono.R')
+    source('~/projects/2020_moni/R_package/git/kimono/R/utility_functions.R')
 
-    #source(file = '~/projects/2020_moni/R_package/git/kimono/R/infer_sgl_model.R',local = T)
-    #source(file = '~/projects/2020_moni/R_package/git/kimono/R/utility_functions.R',local = T)
-    #source(file = '~/projects/2020_moni/R_package/git/kimono/R/kimono.R',local = T)
 
+    # can't pass on a node in foreach therefore we have to reselect it here
     #get y and x for a given node
-    var_list <- fetch_var(node,
-                          input_list,
-                          mapping_list,
-                          metainfo)
+    var_list <- fetch_var(node_name , prior_network, input_data)
 
     #remove na and scale data
     var_list <- preprocess_data(var_list$y,var_list$x)
@@ -175,7 +139,7 @@ infer_network <- function(input_list, mapping_list, metainfo,  main_layer = 1, m
     if(is.null(subnet))
        return( )
 
-    data.table('target' = node, subnet)
+    data.table('target' = strsplit(node_name,'___')[[1]][2], subnet)
 
   }
   parallel::stopCluster(cl)
@@ -198,9 +162,9 @@ infer_network <- function(input_list, mapping_list, metainfo,  main_layer = 1, m
 #' @param core - if core != 1 kimono will perform an parallell computation
 #' @return a network in form of an edge table
 #' @export
-kimono <- function(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2, sel_iterations = 0 , core = 1, ...){
+kimono <- function(input_data, prior_network, min_features = 2, sel_iterations = 0 , core = 1, ...){
 
-  result <- infer_network(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2, sel_iterations , core, ...)
+  result <- infer_network(input_data, prior_network,  min_features , sel_iterations , core, ...)
 
   if( nrow(result) == 0)
     warning('model was not able to infer any associations')
