@@ -69,18 +69,18 @@ calc_cv_error <- function(Y_hat,y){
   apply( Y_hat , 2, calc_mse, y )
 }
 
-#' detects non informative features
+#' name parsing
 #'
-#' @parameter Y_hat predicted matrix with one y_hat per column
+#' @parameter string
 #' @return vector of mse
 parsing_name <- function(string,sep="___"){
 
   idx <- grepl("___",string) #might be variables like intercept which do not have any prefix
 
-  result <- data.frame('prefix'= as.character(string), "id"= as.character(string), stringsAsFactors = FALSE)
+  result <- data.frame('prefix' = as.character(string), "id" = as.character(string), stringsAsFactors = FALSE)
   split_string <- do.call(rbind,strsplit(as.character(string[idx]),'___'))
-  result[-idx,1] <- split_string[,1]
-  result[-idx,2] <- split_string[,2]
+  result[ idx,1] <- split_string[,1]
+  result[ idx,2] <- split_string[,2]
 
   result
 }
@@ -226,11 +226,11 @@ train_kimono_sgl  <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE
 
   prefix_covariates <- parsing_name(covariates)
 
-  tibble("predictor"=prefix_covariates$id,
-                      "value"=beta,
-                      "r_squared"= r_squared,
-                      "mse"=mse,
-                      "relation"=prefix_covariates$prefix
+  tibble("predictor" = prefix_covariates$id,
+                      "value" = beta,
+                      "r_squared" = r_squared,
+                      "mse" = mse,
+                      "predictor_layer" = prefix_covariates$prefix
                       )
 }
 
@@ -254,11 +254,11 @@ stability_selection <- function(y, x, nseeds){
   # Groupsparse does not always return all features - therefore we need a vector with all the names
   # and all the relations to calculate the stability selection
 
-  tmp_names <- do.call(rbind , strsplit(colnames(x),'___'))
+  tmp_names <- parsing_name(colnames(x))
   idx <- data.frame('id' = 1:(ncol(x) + 1),
                     'merged' = c('(Intercept)___(Intercept)',colnames(x)),
                     'names' = c('(Intercept)',tmp_names[,2]),
-                    'relation' = c('(Intercept)',tmp_names[,1])
+                    'predictor_layer' = c('(Intercept)',tmp_names[,1])
   )
 
   # Iterate over each of the seeds and set the seed
@@ -277,8 +277,8 @@ stability_selection <- function(y, x, nseeds){
       next
     }
 
-    fit <- cbind(fit, 'merged' = paste(fit$relation,fit$predictor,sep = '___'))
-    fit <- merge(idx, fit, by='merged', all.x = TRUE )
+    fit <- cbind(fit, 'merged' = paste(fit$predictor_layer,fit$predictor,sep = '___'))
+    fit <- merge(idx, fit, by ='merged', all.x = TRUE )
 
     df_mse[i] <-  fit$mse[1]
     df_r_squared[i] <-  fit$r_squared[1]
@@ -292,14 +292,14 @@ stability_selection <- function(y, x, nseeds){
 
   tibble(
     'predictor' =  idx$names,
-    'relation' =  idx$relation,
-    'sel_freq' = (nseeds-apply(df_values,1,function(x){sum(is.na(x))}))/nseeds,
     'mean_value' = rowMeans(df_values, na.rm = T),
     'sd_value' = apply(df_values,1,function(x){sd(x,na.rm = T)}),
     'mean_rsq' = mean(df_r_squared, na.rm = T),
     'sd_rsq' = sd(df_r_squared, na.rm = T),
     'mean_mse' = mean(df_mse, na.rm = T),
-    'sd_mse' = sd(df_mse, na.rm = T)
+    'sd_mse' = sd(df_mse, na.rm = T),
+    'sel_freq' = (nseeds-apply(df_values,1,function(x){sum(is.na(x))}))/nseeds,
+    'predictor_layer' =  idx$predictor_layer
   )
 }
 
