@@ -175,9 +175,9 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
   doParallel::registerDoParallel(cl)
   result <- foreach(node_name = node_names, .combine = 'rbind', .packages = 'kimono')  %dopar% {
 
-    source('R_package/git/kimono/R/infer_sgl_model.R')
-    source('R_package/git/kimono/R/kimono.R')
-    source('R_package/git/kimono/R/utility_functions.R')
+    source('~/projects/2020_moni/R_package/git/kimono/R/infer_sgl_model.R')
+    source('~/projects/2020_moni/R_package/git/kimono/R/kimono.R')
+    source('~/projects/2020_moni/R_package/git/kimono/R/utility_functions.R')
 
     # can't pass on a node in foreach therefore we have to reselect it here
     #get y and x for a given node
@@ -240,7 +240,7 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
 kimono <- function(input_data, prior_network, min_features = 2, sel_iterations = 0 , core = 1, specific_layer = NULL,  ...){
 
   is_prior_missing <- length(names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]) != 0
-  result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = is_prior_missing, DEBUG = TRUE )
+  result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = is_prior_missing, DEBUG =TRUE )
 
   if( nrow(result) == 0){
     warning('model was not able to infer any associations')
@@ -250,7 +250,8 @@ kimono <- function(input_data, prior_network, min_features = 2, sel_iterations =
         idx_row <- (result$predictor != '(Intercept)' | result[,3] != 0 ) &
           result$predictor_layer %in% names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
         idx_col <- c('target','predictor','target_layer','predictor_layer')
-        tmp <- filter(result,idx_row)[,idx_col]
+
+        tmp <- filter(result,idx_row)[,..idx_col]
         colnames(tmp) <- c('A','B','layer_A','layer_B')
 
         layer_of_interest <- unique(tmp$layer_B)
