@@ -33,7 +33,6 @@ fetch_var <- function(node_name , prior_network, input_data, prior_missing){
 
   ##check if prior is missing for whole layer
   features_prior_missing <- c()
-  features_prior_missing <- c()
   if(prior_missing){
     layer_missing <- names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
     if(length(layer_missing)>0){
