@@ -65,7 +65,6 @@ is_underpowered <- function(x){
 #' @parameter Y_hat predicted matrix with one y_hat per column
 #' @return vector of mse
 calc_cv_error <- function(Y_hat,y){
-
   apply( Y_hat , 2, calc_mse, y )
 }
 
@@ -302,11 +301,3 @@ stability_selection <- function(y, x, nseeds){
     'predictor_layer' =  idx$predictor_layer
   )
 }
-
-#for debugging purpose only
-#DEBUG <- train_kimono_sgl(y,x)
-#cat("performance:",DEBUG[1,3],"\n features:",length(which(DEBUG[,2]!= 0)),"of:",length(DEBUG[,2]),"\n","mse:",DEBUG[1,4])
-#model = "sparse.grp.lasso"
-#intercept = TRUE
-#seed_cv = 1234
-#folds_cv = 5

@@ -1,53 +1,3 @@
-#' loading mapping files
-#'
-#' @param df
-#' @param layers - default NA, if no colnames please specify your layer names here
-#' @return data frame containing all mappings
-load_mapping <- function(df, layers=NA){
-  if(length(layers) != 2 ){
-    layers <- colnames(df)
-  }
-  map <- as.data.table(df)
-  map <- cbind(map, layers[1], layers[2])
-  colnames(map) <- c('A','B','layer_A','layer_B')
-  map
-}
-
-#' creating a prior network on basis of the prior_map
-#'
-#' @param prior_map
-#' @return igraph network
-create_prior_network <- function(prior_map) {
-
-  #cleaning
-  idx_rm <- as.character(prior_map$A) %in% c('',NA) |
-    as.character(prior_map$B) %in% c('',NA)
-  prior_map <- prior_map[!idx_rm,]
-
-  #rm duplicated mapings
-  prior_map <- distinct(prior_map)
-
-  #nodes
-  A <- distinct(prior_map,A,layer_A)
-  colnames(A) <- c('id_name','layer')
-  B <- distinct(prior_map,B,layer_B)
-  colnames(B) <- c('id_name','layer')
-  nodes <- distinct(rbind(A,B))
-  nodes <- cbind('id' = paste(nodes$layer,nodes$id_name,sep = '___'),
-                 'name' = paste(nodes$layer,nodes$id_name,sep = '___'),
-                 nodes)
-
-  #links
-  links <- data.table( from = paste(prior_map$layer_A,prior_map$A,sep='___'),
-                       to = paste(prior_map$layer_B,prior_map$B,sep='___'),
-                       relation = paste(prior_map$layer_A,prior_map$layer_B,sep='___')
-
-  )
-
-  graph_from_data_frame(links, directed = FALSE, vertices = nodes)
-}
-
-
 #' using the prior information to fetsh the right data for X
 #'
 #' @param node ,
@@ -83,12 +33,16 @@ fetch_var <- function(node_name , prior_network, input_data, prior_missing){
 
   ##check if prior is missing for whole layer
   features_prior_missing <- c()
+  features_prior_missing <- c()
   if(prior_missing){
     layer_missing <- names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
     if(length(layer_missing)>0){
-        features_prior_missing <- colnames(input_data[[layer_missing]])
+      for (layer in layer_missing) {
+        features_prior_missing <- c(colnames(input_data[[layer]]),features_prior_missing)
+      }
     }
   }
+
 
   features <- c(unique(features$name),features_prior_missing)
 
@@ -102,8 +56,6 @@ fetch_var <- function(node_name , prior_network, input_data, prior_missing){
   list("y" = y,
        "x" = x)
 }
-
-
 
 #' remove na, scale
 #'
@@ -153,31 +105,49 @@ is_valid <- function( x, min_features  ){
 #' @return a network in form of an edge table
 infer_network <- function(input_data, prior_network,  min_features = 2, sel_iterations = 0, core = 1, specific_layer = NULL, prior_missing = TRUE, DEBUG = FALSE, ...) {
 
+  #get all features within the prior network
+  node_names <- V(prior_network)$name
 
-  #preprocess input data
+  # preprocess data
+  # filter out nodes where a prior is missing
+  prior_filter <- rep(FALSE,length(node_names))
   for (i in names(input_data)) {
-    colnames(input_data[[i]]) <- paste(i,colnames(input_data[[i]]),sep='___')
+    colnames(input_data[[i]]) <- paste(i,colnames(input_data[[i]]),sep = '___')
+
+    data_filter <- colnames(input_data[[i]]) %in% node_names
+    if(any(data_filter))
+    {
+      input_data[[i]] <- input_data[[i]][,..data_filter]
+      cat(i,'prior coverage ',sum(data_filter)/length(data_filter),'\n')
+    }
+
+    prior_filter <- prior_filter | (node_names %in% colnames(input_data[[i]]))
+   sum(prior_filter)
   }
+  node_names <- node_names[prior_filter]
 
 
-  node_names = V(prior_network)$name
   #check if we only infer a specific layer
   if(!is.null(specific_layer)){
-    node_names = V(prior_network)$name[V(prior_network)$layer %in% specific_layer]
+    node_names <- V(prior_network)$name[V(prior_network)$layer %in% specific_layer]
   }
 
   if(DEBUG){
     node_names <- node_names[1:10]
   }
 
+  iterations <- length( node_names)
+
   #TODO: check if number of features are too many for inference
   cl <- parallel::makeCluster(core)
   doParallel::registerDoParallel(cl)
   result <- foreach(node_name = node_names, .combine = 'rbind', .packages = 'kimono')  %dopar% {
 
-    source('~/projects/2020_moni/R_package/git/kimono/R/infer_sgl_model.R')
-    source('~/projects/2020_moni/R_package/git/kimono/R/kimono.R')
-    source('~/projects/2020_moni/R_package/git/kimono/R/utility_functions.R')
+
+    source('~/projects/2020_kimono/kimono/R/create_prior.R')
+    source('~/projects/2020_kimono/kimono/R/infer_sgl_model.R')
+    source('~/projects/2020_kimono/kimono/R/kimono.R')
+    source('~/projects/2020_kimono/kimono/R/utility_functions.R')
 
     # can't pass on a node in foreach therefore we have to reselect it here
     #get y and x for a given node
@@ -213,6 +183,7 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
     if(is.null(subnet))
       return( )
 
+
     data.table('target' = parsing_name(node_name)$id , subnet , 'target_layer' = parsing_name(node_name)$prefix)
 
   }
@@ -240,7 +211,8 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
 kimono <- function(input_data, prior_network, min_features = 2, sel_iterations = 0 , core = 1, specific_layer = NULL,  ...){
 
   is_prior_missing <- length(names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]) != 0
-  result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = is_prior_missing, DEBUG =TRUE )
+
+  result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = is_prior_missing, DEBUG =FALSE )
 
   if( nrow(result) == 0){
     warning('model was not able to infer any associations')
