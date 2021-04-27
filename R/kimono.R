@@ -209,15 +209,42 @@ kimono <- function(input_list, mapping_list, metainfo,  main_layer = 1, min_feat
   result
 }
 
-#source(file = 'R_package/kimono/R/infer_sgl_model.R')
-#source(file = 'R_package/kimono/R/utility_functions.R')
-#main_layer = 1
-#node='A1BG'
-#min_features = 2
-#cores = 1
-#start_time <- Sys.time()
-#DEBUG <- c()
-#DEBUG <-kimono(input_list, mapping_list,metainfo)
-#Sys.time() - start_time
-#mean(as.matrix(unique(DEBUG[,4,with=FALSE]))) #0.0266
+run_kimono_para <- function(node, myinput_list=input_list, mymapping_list=mapping_list, mymetainfo=metainfo,  main_layer = 1, min_features = 5, stab_sel = FALSE, niterations = 100){
+  #get y and x for a given node
+  var_list <- fetch_var(node,
+                        myinput_list,
+                        mymapping_list,
+                        mymetainfo)
+  
+  #remove na and scale data
+  var_list <- preprocess_data(var_list$y,var_list$x)
+  
+  #if not enough features stop here
+  if(!is_valid(var_list$x,min_features))
+    return()
+  
+  #run model in case the model bugs out catch it
+  possible_error <- tryCatch(
+    {
+      if(stab_sel == FALSE){
+        subnet <- train_kimono_sgl(var_list$y,var_list$x )
+      }
+      else{
+        subnet <- stability_select(x = var_list$x, y = var_list$y, target = node, nseeds = niterations )
+      }
+      FALSE
+    },
+    error=function(cond) {TRUE},
+    warning=function(cond) {TRUE}
+  )
+  
+  if(possible_error)
+    return( )
+  
+  if(is.null(subnet))
+    return( )
+  
+  #return(data.table('target'=node, subnet))
+  return(subnet)
+}
 
