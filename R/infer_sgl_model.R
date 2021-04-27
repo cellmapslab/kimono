@@ -1,4 +1,14 @@
 
+#' Calculate standard error
+#'
+#' @parameter x vector
+#' @return se of x
+calc_se <- function(x, na.rm=FALSE) {
+  if (na.rm) 
+    x <- na.omit(x)
+  sqrt(var(x) / length(x))
+} 
+
 #' Calculate tau based on frobenius norm
 #'
 #' @parameter x matrix/dataframe. must have at least rows & cols > 2
@@ -295,7 +305,8 @@ stability_selection <- function(y, x, nseeds){
     'relation' =  idx$relation,
     'sel_freq' = (nseeds-apply(df_values,1,function(x){sum(is.na(x))}))/nseeds,
     'mean_value' = rowMeans(df_values, na.rm = T),
-    'sd_value' = apply(df_values,1,function(x){sd(x,na.rm = T)}),
+    'se_value' = apply(df_values, 1, function(x){calc_se(x, na.rm = T)}),
+    'sd_value' = apply(df_values, 1, function(x){sd(x, na.rm = T)}),
     'mean_rsq' = mean(df_r_squared, na.rm = T),
     'sd_rsq' = sd(df_r_squared, na.rm = T),
     'mean_mse' = mean(df_mse, na.rm = T),
