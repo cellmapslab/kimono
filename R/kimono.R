@@ -257,12 +257,9 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
 #' @param core - if core != 1 kimono will perform an parallell computation
 #' @return a network in form of an edge table
 #' @export
-<<<<<<< HEAD
-kimono <- function(input_list, mapping_list, metainfo,  main_layer = 1, min_features = 2, sel_iterations = 0 , core =1, ...){
-=======
+
 kimono <- function(input_data, prior_network, min_features = 2, sel_iterations = 0 , core = 1, specific_layer = NULL, DEBUG = FALSE, scdata=FALSE,  ...){
 
->>>>>>> allvsall
 
   is_prior_missing <- length(names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]) != 0
 
