@@ -22,6 +22,7 @@ fetch_var <- function(node_name , prior_network, input_data, prior_missing){
   #identify ID of needed features
   features <- neighbors(prior_network, node$name, mode = c("all"))
 
+
   ## get omic layer neighbours
   neighbours_within_layer <- features[features$layer %in% node$layer]
   if( length(neighbours_within_layer) > 0 ){
@@ -42,13 +43,18 @@ fetch_var <- function(node_name , prior_network, input_data, prior_missing){
     }
   }
 
-
   features <- c(unique(features$name),features_prior_missing)
 
   for (i in 1:length(input_data)) {
     #extract cross omic relations
     x_idx <- colnames(input_data[[i]]) %in% features
     x <- cbind(x,input_data[[i]][,..x_idx,with = FALSE])
+  }
+
+  #remove self loops
+  if(any(colnames(y) %in% colnames(x))){
+    idx <- which(!colnames(x) %in% colnames(y))
+    x <- x[,..idx]
   }
 
 
@@ -66,10 +72,8 @@ preprocess_data <- function(y, x){
   y <- scale(y)
   x <- scale(x)
 
-  tmp_length <- length(y)
-
-  x <- x[!is.na(y), , drop = FALSE]
-  y <- y[!is.na(y), drop = FALSE]
+  x <- x[which(!is.na(y)), , drop = FALSE]
+  y <- y[which(!is.na(y)), drop = FALSE]
 
   if(!is.null( dim(x) ) )
     x <- x[ ,!is.na(colSums(x)),drop = FALSE]
@@ -77,6 +81,36 @@ preprocess_data <- function(y, x){
   list("y"=as.data.table(y),
        "x"=as.data.table(x))
 }
+
+
+#' remove na, scale
+#'
+#' @param y , vector of doubles
+#' @param x , matrix features in columns and samples in rows
+#' @return x, y without na's
+preprocess_scdata <- function(y, x){
+
+  y <- scale(y)
+  x <- scale(x)
+
+  x <- x[which(!is.na(y)), , drop = FALSE]
+  y <- y[which(!is.na(y)), drop = FALSE]
+
+  tmp_length <- length(y)
+
+
+  if(!is.null( dim(x) ) ){
+    test <- apply(x, 2,function(y) sum(length(which(is.na(y)))))
+    x <- x[,which(colnames(x) %in% names(test[test/tmp_length < 0.3])), drop = FALSE]
+    y <- y[which(!is.na(rowSums(x))), drop = FALSE]
+    x <- x[which(!is.na(rowSums(x))), , drop = FALSE]
+  }
+
+
+  list("y"=as.data.table(y),
+       "x"=as.data.table(x))
+}
+
 
 #' check if data is valid
 #'
@@ -102,7 +136,7 @@ is_valid <- function( x, min_features  ){
 #' @param sel_iterations - run stability selection, defines number of iterations. if !=0 it will perform stability selection
 #' @param core - to run network inference in parallel
 #' @return a network in form of an edge table
-infer_network <- function(input_data, prior_network,  min_features = 2, sel_iterations = 0, core = 1, specific_layer = NULL, prior_missing = TRUE, DEBUG = FALSE, ...) {
+infer_network <- function(input_data, prior_network,  min_features = 2, sel_iterations = 0, core = 1, specific_layer = NULL, prior_missing = TRUE, DEBUG = FALSE, scdata=FALSE, ...) {
 
   #get all features within the prior network
   node_names <- V(prior_network)$name
@@ -121,7 +155,7 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
     }
 
     prior_filter <- prior_filter | (node_names %in% colnames(input_data[[i]]))
-   sum(prior_filter)
+    sum(prior_filter)
   }
   node_names <- node_names[prior_filter]
 
@@ -132,7 +166,7 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
   }
 
   if(DEBUG){
-    node_names <- node_names[1:10]
+    node_names <- node_names[1:100]
   }
 
   iterations <- length( node_names)
@@ -142,24 +176,40 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
   doParallel::registerDoParallel(cl)
   result <- foreach(node_name = node_names, .combine = 'rbind', .packages = 'kimono')  %dopar% {
 
+    source('~/2019_tryibd/kimono/R/create_prior.R')
+    source('~/2019_tryibd/kimono/R/infer_sgl_model.R')
+    source('~/2019_tryibd/kimono/R/kimono.R')
+    source('~/2019_tryibd/kimono/R/utility_functions.R')
+    library(igraph)
+    library(data.table)
+    library(dplyr)
+    library(oem)
+    library(foreach)
+    library(doParallel)
+    library(tidyverse)
 
-    source('~/projects/2020_kimono/kimono/R/create_prior.R')
-    source('~/projects/2020_kimono/kimono/R/infer_sgl_model.R')
-    source('~/projects/2020_kimono/kimono/R/kimono.R')
-    source('~/projects/2020_kimono/kimono/R/utility_functions.R')
 
-    # can't pass on a node in foreach therefore we have to reselect it here
+    # can't pass on an igraph node in foreach therefore we have to reselect it here
     #get y and x for a given node
     var_list <- fetch_var(node_name , prior_network, input_data, prior_missing)
-    if(is.null(var_list))
+    if(sum(dim(var_list$x))==0)
       return()
 
+    if(sum(dim(var_list$y))==0)
+      return()
+
+
     #remove na and scale data
-    var_list <- preprocess_data(var_list$y,var_list$x)
+    if(scdata){
+      var_list <- preprocess_scdata(var_list$y,var_list$x)
+    }else{
+      var_list <- preprocess_data(var_list$y,var_list$x)
+    }
 
     #if not enough features stop here
     if(!is_valid(var_list$x,min_features))
       return()
+
 
     #run model in case the model bugs out catch it
     possible_error <- tryCatch(
@@ -176,15 +226,15 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
       warning = function(cond) {TRUE}
     )
 
-    if(possible_error)
+    if(!exists("subnet"))
       return( )
 
     if(is.null(subnet))
       return( )
 
+    t <- data.table('target' = parsing_name(node_name)$id , subnet , 'target_layer' = parsing_name(node_name)$prefix)
 
-    data.table('target' = parsing_name(node_name)$id , subnet , 'target_layer' = parsing_name(node_name)$prefix)
-
+    return(t)
   }
   parallel::stopCluster(cl)
 
@@ -207,32 +257,35 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
 #' @param core - if core != 1 kimono will perform an parallell computation
 #' @return a network in form of an edge table
 #' @export
-kimono <- function(input_data, prior_network, min_features = 2, sel_iterations = 0 , core = 1, specific_layer = NULL,  ...){
+kimono <- function(input_data, prior_network, min_features = 2, sel_iterations = 0 , core = 1, specific_layer = NULL, DEBUG = FALSE, scdata=FALSE,  ...){
+
 
   is_prior_missing <- length(names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]) != 0
 
-  result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = is_prior_missing, DEBUG =FALSE )
+
+  result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = is_prior_missing, DEBUG, scdata )
 
   if( nrow(result) == 0){
     warning('model was not able to infer any associations')
-    }else{
+  }else{
 
-      if(is_prior_missing){
-        idx_row <- (result$predictor != '(Intercept)' | result[,3] != 0 ) &
-          result$predictor_layer %in% names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
-        idx_col <- c('target','predictor','target_layer','predictor_layer')
+    if(is_prior_missing){
+      idx_row <- (result$predictor != '(Intercept)' | result[,3] != 0 ) &
+        result$predictor_layer %in% names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
+      idx_col <- c('target','predictor','target_layer','predictor_layer')
 
-        tmp <- filter(result,idx_row)[,..idx_col]
-        colnames(tmp) <- c('A','B','layer_A','layer_B')
+      tmp <- filter(result,idx_row)[,..idx_col]
+      colnames(tmp) <- c('A','B','layer_A','layer_B')
 
-        layer_of_interest <- unique(tmp$layer_B)
+      layer_of_interest <- unique(tmp$layer_B)
+      cat(' starting ')
+      prior_network_new <- create_prior_network(tmp)
+      tmp <- infer_network(input_data, prior_network_new,  min_features , sel_iterations , core, specific_layer = layer_of_interest, prior_missing = FALSE )
+      cat('DONE')
 
-        prior_network_new <- create_prior_network(tmp)
-        tmp <- infer_network(input_data, prior_network_new,  min_features , sel_iterations , core, specific_layer = layer_of_interest, prior_missing = FALSE )
-
-        result <- rbind(result,tmp)
-      }
+      result <- rbind(result,tmp)
     }
+  }
 
   result
 }

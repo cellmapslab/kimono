@@ -146,7 +146,7 @@ calc_cv_sgl <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE, seed
             tau = tau ,
             groups = group,
             intercept = intercept)
-       )
+      )
 
       Y_hat             <- predict( fit_cv, test_x, type = "response" ) # predict test set
       error_cv[fold, ]  <- calc_cv_error(Y_hat,test_y )                 # evaluate test error
@@ -207,9 +207,9 @@ train_kimono_sgl  <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE
         tau = tau ,
         groups = group,
         intercept = intercept #oem performs better with intercept even though
-                              # we scaled the input data. Inferred intercepts
-                              # can be ignored since they are almost 0.
-        )
+        # we scaled the input data. Inferred intercepts
+        # can be ignored since they are almost 0.
+    )
   )
 
   y_hat <- predict(fit, x, type = "response")
@@ -226,11 +226,11 @@ train_kimono_sgl  <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE
   prefix_covariates <- parsing_name(covariates)
 
   tibble("predictor" = prefix_covariates$id,
-                      "value" = beta,
-                      "r_squared" = r_squared,
-                      "mse" = mse,
-                      "predictor_layer" = prefix_covariates$prefix
-                      )
+         "value" = beta,
+         "r_squared" = r_squared,
+         "mse" = mse,
+         "predictor_layer" = prefix_covariates$prefix
+  )
 }
 
 
