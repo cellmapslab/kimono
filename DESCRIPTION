@@ -1,6 +1,6 @@
 Package: kimono
 Title: Knowledge-guIded Multi-Omic NetOwrk inference
-Version: 0.0.1.0006
+Version: 0.0.2.0001
 Authors@R: 
     person(given = "Christoph",
            family = "Ogris",
@@ -16,5 +16,6 @@ Depends:
     dplyr,
     oem,
     foreach,
+    igraph,
     doParallel
 RoxygenNote: 7.0.2
