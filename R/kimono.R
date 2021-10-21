@@ -151,7 +151,7 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
     if(any(data_filter))
     {
       input_data[[i]] <- input_data[[i]][,..data_filter]
-      cat(i,'prior coverage ',sum(data_filter)/length(data_filter),'\n')
+      #cat(i,'prior coverage ',sum(data_filter)/length(data_filter),'\n')
     }
 
     prior_filter <- prior_filter | (node_names %in% colnames(input_data[[i]]))
@@ -279,16 +279,20 @@ kimono <- function(input_data, prior_network, min_features = 2, sel_iterations =
 
     if(is_prior_missing){
 
-      cat('Using inferred effects as priors for \n')
+      cat('Using inferred effects as priors for ')
 
       idx_row <- (result$predictor != '(Intercept)' | result[,3] != 0 ) &
-        result$predictor_layer %in% names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
+                  result$predictor_layer %in% names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
+
       idx_col <- c('target','predictor','target_layer','predictor_layer')
 
       tmp <- filter(result,idx_row)[,..idx_col]
       colnames(tmp) <- c('A','B','layer_A','layer_B')
 
       layer_of_interest <- unique(tmp$layer_B)
+
+      cat(layer_of_interest, '\n')
+
       prior_network_new <- create_prior_network(tmp)
       tmp <- infer_network(input_data, prior_network_new,  min_features , sel_iterations , core, specific_layer = layer_of_interest, prior_missing = FALSE )
 
