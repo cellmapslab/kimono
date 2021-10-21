@@ -301,7 +301,7 @@ kimono <- function(input_data, prior_network, min_features = 2, sel_iterations =
     }
   }
 
-  cat('Duration' , Sys.time() - time)
+  cat('Done' , Sys.time() - time)
 
   result
 }
