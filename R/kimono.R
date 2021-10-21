@@ -256,18 +256,31 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
 
 kimono <- function(input_data, prior_network, min_features = 2, sel_iterations = 0 , core = 1, specific_layer = NULL, DEBUG = FALSE, scdata=FALSE,  ...){
 
-
+  cat('Run started at : ' , as.character (Sys.time()))
+  cat('Input : ')
+  for (layers in names(input_data)) {
+    cat(layers,': \n')
+    cat(' - samples  : ', dim(input_data[[layers]])[1], '\n' )
+    cat(' - features : ', dim(input_data[[layers]])[2] ,'\n')
+    if( any(layers %in% unique(V(prior_network)$layer)) ){
+      cat(' - prior nodes :', sum(V(prior_network)$layer %in% layers))
+    }
+    cat('\n')
+  }
 
   is_prior_missing <- length(names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]) != 0
 
-
+  cat('Network inference using prior \n')
   result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = is_prior_missing, DEBUG, scdata )
 
   if( nrow(result) == 0){
-    warning('model was not able to infer any associations')
+    warning('KiMONo was not able to infer any associations')
   }else{
 
     if(is_prior_missing){
+
+      cat('Using inferred effects as priors for \n')
+
       idx_row <- (result$predictor != '(Intercept)' | result[,3] != 0 ) &
         result$predictor_layer %in% names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
       idx_col <- c('target','predictor','target_layer','predictor_layer')
@@ -278,7 +291,6 @@ kimono <- function(input_data, prior_network, min_features = 2, sel_iterations =
       layer_of_interest <- unique(tmp$layer_B)
       prior_network_new <- create_prior_network(tmp)
       tmp <- infer_network(input_data, prior_network_new,  min_features , sel_iterations , core, specific_layer = layer_of_interest, prior_missing = FALSE )
-      cat('DONE')
 
       result <- rbind(result,tmp)
     }
