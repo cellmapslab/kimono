@@ -257,7 +257,7 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
 kimono <- function(input_data, prior_network, min_features = 2, sel_iterations = 0 , core = 1, specific_layer = NULL, DEBUG = FALSE, scdata=FALSE,  ...){
 
   time <- Sys.time()
-  cat('Run started at : ' , as.character(Sys.time()))
+  cat('Run started at : ' , as.character(Sys.time()),'\n')
   cat('Input : ')
   for (layers in names(input_data)) {
     cat(layers,': \n')
