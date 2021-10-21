@@ -18,9 +18,8 @@ calc_mse <- function(y,y_hat){
 
 #' estimate frobenius norm of a matrix
 #'
-#' @parameter y vector of double, assumed to be TRUE
-#' @parameter y_hat vector of double, predicted
-#' @return  mse double
+#' @parameter x vector of double, assumed to be TRUE
+#' @return  frobenius norm double
 calc_frobenius_norm <- function(x){
   m    <- cor(as.matrix(x))
   sqrt( sum( m[upper.tri(m)]^2) ) / sqrt( (nrow(m)^2 - nrow(m)) /2 )
