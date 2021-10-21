@@ -11,14 +11,14 @@
 
 
 
-<title>Example.knit</title>
+<title>index.knit</title>
 
-<script src="Example_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="index_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="Example_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
-<script src="Example_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
-<script src="Example_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
-<script src="Example_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<link href="index_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="index_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="index_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="index_files/bootstrap-3.3.5/shim/respond.min.js"></script>
 <style>h1 {font-size: 34px;}
        h1.title {font-size: 38px;}
        h2 {font-size: 30px;}
@@ -28,20 +28,20 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
-<script src="Example_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
-<link href="Example_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
-<script src="Example_files/tocify-1.9.1/jquery.tocify.js"></script>
-<script src="Example_files/navigation-1.1/tabsets.js"></script>
-<link href="Example_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
-<script src="Example_files/highlightjs-9.12.0/highlight.js"></script>
-<script src="Example_files/htmlwidgets-1.5.4/htmlwidgets.js"></script>
-<link href="Example_files/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
-<script src="Example_files/datatables-binding-0.19/datatables.js"></script>
-<link href="Example_files/dt-core-1.10.20/css/jquery.dataTables.min.css" rel="stylesheet" />
-<link href="Example_files/dt-core-1.10.20/css/jquery.dataTables.extra.css" rel="stylesheet" />
-<script src="Example_files/dt-core-1.10.20/js/jquery.dataTables.min.js"></script>
-<link href="Example_files/crosstalk-1.1.1/css/crosstalk.css" rel="stylesheet" />
-<script src="Example_files/crosstalk-1.1.1/js/crosstalk.min.js"></script>
+<script src="index_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="index_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="index_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="index_files/navigation-1.1/tabsets.js"></script>
+<link href="index_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="index_files/highlightjs-9.12.0/highlight.js"></script>
+<script src="index_files/htmlwidgets-1.5.4/htmlwidgets.js"></script>
+<link href="index_files/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
+<script src="index_files/datatables-binding-0.19/datatables.js"></script>
+<link href="index_files/dt-core-1.10.20/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="index_files/dt-core-1.10.20/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="index_files/dt-core-1.10.20/js/jquery.dataTables.min.js"></script>
+<link href="index_files/crosstalk-1.1.1/css/crosstalk.css" rel="stylesheet" />
+<script src="index_files/crosstalk-1.1.1/js/crosstalk.min.js"></script>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -270,8 +270,8 @@ Knowledge Guided Multi-Omic Network Inference</h1>
 </center>
 <p><br><br></p>
 <p>Graph inference from multimodal biological data sets of different measurement techniques has always been a big challenge in life sicience. KiMONo infers a multimodal graph by creating a sparse group lasso regression model for each feature. The method uses prior knowledge to pre-weight features. All trained models are then combined in a graph. Here nodes represent an individual input feature, like blood parameters, genes or proteins, and edges are modeled relations between them..</p>
-<div id="data-libraries" class="section level1">
-<h1>Data &amp; Libraries</h1>
+<div id="example-data" class="section level1">
+<h1>Example Data</h1>
 <hr />
 <div id="libraries" class="section level2">
 <h2>Libraries</h2>
@@ -416,7 +416,7 @@ prior_network %&gt;% plot(edge.curved=1,
      layout=layout_randomly, rescale=F) 
 legend(x=-1.5, y=-1.1, c(&quot;Genes&quot;,&quot;Proteins&quot;), pch=21,
        col=&quot;#777777&quot;, pt.bg=c(&quot;steel blue&quot;, &quot;orange&quot;), pt.cex=2, cex=.8, bty=&quot;n&quot;, ncol=1)</code></pre>
-<p><img src="Example_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 </div>
 </div>
 </div>
@@ -465,8 +465,8 @@ legend(x=-1.5, y=-1.1, c(&quot;Genes&quot;,&quot;Proteins&quot;), pch=21,
 <li><strong>target_layer</strong> - input data the target belongs to</li>
 </ul>
 <pre class="r"><code>DT::datatable(head(network), class = &#39;cell-border stripe&#39;)</code></pre>
-<div id="htmlwidget-ef0f8001b18ed35a16bc" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-ef0f8001b18ed35a16bc">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["gene_B","gene_B","gene_B","gene_B","gene_B","gene_B"],["(Intercept)","gene_A","gene_C","gene_D","gene_E","m"],[-8.51582596336706e-19,0,0,0.0622081704422632,0,0],[0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509],[0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681],["(Intercept)","gene","gene","gene","gene","protein"],["gene","gene","gene","gene","gene","gene"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>target<\/th>\n      <th>predictor<\/th>\n      <th>value<\/th>\n      <th>r_squared<\/th>\n      <th>mse<\/th>\n      <th>predictor_layer<\/th>\n      <th>target_layer<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-2f82db2c4da27e5818c0" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2f82db2c4da27e5818c0">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["gene_B","gene_B","gene_B","gene_B","gene_B","gene_B"],["(Intercept)","gene_A","gene_C","gene_D","gene_E","m"],[-8.51582596336706e-19,0,0,0.0622081704422632,0,0],[0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509],[0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681],["(Intercept)","gene","gene","gene","gene","protein"],["gene","gene","gene","gene","gene","gene"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>target<\/th>\n      <th>predictor<\/th>\n      <th>value<\/th>\n      <th>r_squared<\/th>\n      <th>mse<\/th>\n      <th>predictor_layer<\/th>\n      <th>target_layer<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <div id="network-analysis" class="section level1">
@@ -487,7 +487,7 @@ gg_grouped &lt;- network[predictor == &#39;(Intercept)&#39;,] %&gt;%
                     geom_boxplot(fill=c(&quot;steel blue&quot;,&#39;#842F39&#39;, &quot;orange&quot;))
 
 plot_grid(gg_all, gg_grouped, rel_widths = c(1, 2))</code></pre>
-<p><img src="Example_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 <pre class="r"><code>nnodes &lt;- c(network$target, network$predictor) %&gt;% unique %&gt;% length
 nedges &lt;- dim(network)[1]
 
@@ -544,7 +544,7 @@ plot(ig,
 
  legend(x=-1.5, y=-1.1, c(&quot;Genes&quot;,&quot;Phenotype&quot;,&quot;Proteins&quot;), pch=21,
      col=&quot;#777777&quot;, pt.bg=c(&quot;steel blue&quot;,&quot;#842F39&quot;, &quot;orange&quot;), pt.cex=2, cex=.8, bty=&quot;n&quot;, ncol=1)</code></pre>
-<p><img src="Example_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
 </div>
 <div id="statistics-1" class="section level3">
 <h3>Statistics</h3>
@@ -563,13 +563,13 @@ plot(ig,
 cat(&#39;Average node degree: &#39;, mean(deg), &#39;\n&#39; )</code></pre>
 <pre><code>## Average node degree:  4.444444</code></pre>
 <pre class="r"><code>hist(deg, breaks=1:vcount(ig)-1, main=&quot;Histogram of node degree&quot;)</code></pre>
-<p><img src="Example_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
 <pre class="r"><code>deg.dist &lt;- degree_distribution(ig, cumulative=T, mode=&quot;all&quot;)
 
 plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.2, col=&quot;orange&quot;, 
 
       xlab=&quot;Degree&quot;, ylab=&quot;Cumulative Frequency&quot;)</code></pre>
-<p><img src="Example_files/figure-html/unnamed-chunk-18-2.png" width="672" /> #### Hubs and authorities &gt; Hubs were expected to contain catalogs with a large number of outgoing links;</p>
+<p><img src="index_files/figure-html/unnamed-chunk-18-2.png" width="672" /> #### Hubs and authorities &gt; Hubs were expected to contain catalogs with a large number of outgoing links;</p>
 <pre class="r"><code>hs &lt;- hub_score(ig, weights=NA)$vector
 
 
@@ -588,7 +588,7 @@ plot(ig,
 
  legend(x=-1.5, y=-1.1, c(&quot;Genes&quot;,&quot;Phenotype&quot;,&quot;Proteins&quot;), pch=21,
      col=&quot;#777777&quot;, pt.bg=c(&quot;steel blue&quot;,&quot;#842F39&quot;, &quot;orange&quot;), pt.cex=2, cex=.8, bty=&quot;n&quot;, ncol=1)</code></pre>
-<p><img src="Example_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
 <blockquote>
 <p>while authorities would get many incoming links from hubs</p>
 </blockquote>
@@ -607,7 +607,7 @@ plot(ig,
 
  legend(x=-1.5, y=-1.1, c(&quot;Genes&quot;,&quot;Phenotype&quot;,&quot;Proteins&quot;), pch=21,
      col=&quot;#777777&quot;, pt.bg=c(&quot;steel blue&quot;,&quot;#842F39&quot;, &quot;orange&quot;), pt.cex=2, cex=.8, bty=&quot;n&quot;, ncol=1)</code></pre>
-<p><img src="Example_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p><img src="index_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
 </div>
 </div>
 </div>

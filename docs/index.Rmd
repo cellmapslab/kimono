@@ -1,15 +1,13 @@
 ---
 title: "<div class='mytitle'>KiMONo</div>Knowledge Guided Multi-Omic Network Inference"
-author: "<center>[Christoph Ogris](https://github.com/cellmapslab/kimono) </center>"
+#author: "<center>[Christoph Ogris](https://github.com/cellmapslab/kimono) </center>"
 date: "<center>`r format(Sys.time(), '%d %B %Y')`</center>"
 mail: "christoph.ogris@helmholtz-muenchen.de"
 linkedin: "christoph-ogris-6a223082"
 twitter: "christoph_ogris"
 github: "00chris00"
 home: "www.helmholtz-muenchen.de/icb/index.html"
-# !!! You need to provide a logo image here !!! Or just delete the field for no logo
 logo: "logo.png"
-
 output:
   lazyrmd::lazy_render:
     toc: TRUE
@@ -34,7 +32,7 @@ Graph inference from multimodal biological data sets of different measurement te
 
 
 
-# Data
+# Example Data
 ***
 ## Libraries
 ```{r, warning = FALSE,  message=FALSE}
