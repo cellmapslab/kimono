@@ -56,7 +56,7 @@ library(DT)
 ```
 
 ## Mulit-modal data
-### Loading 
+
 In this example we look at fictional transcriptomic, proteomic and phenotypic data.
 
 * Rows represent samples
@@ -108,7 +108,6 @@ rm(transcriptome,phenotype,proteome)
 ***
 KiMONo convert a simple csv based files to a prior network which suits us as an inference blueprint. 
 
-### Loading
 ```{r, warning = FALSE}
 gene_gene <- fread("data/mapping_expr.csv")
 gene_gene %>% head
@@ -165,7 +164,8 @@ Inference steps:
     * mse
 5) Combine all models
 
-## Model 
+<br><br>
+
 Regression model:
 \[\begin{aligned} y \sim X\beta + \epsilon \\		\end{aligned}\]
 		
@@ -178,7 +178,7 @@ network <- kimono(input_data, prior_network ,core = 2)
 ```
 
 ## Output
-
+<br>
 Columns:
 
   * **target** - vector y in regression model
@@ -189,7 +189,7 @@ Columns:
   * **predictor_layer** - input data the predictor belongs to
   * **target_layer** - input data the target belongs to
 
-
+<br>
 ```{r, warning = FALSE}
 DT::datatable(head(network), class = 'cell-border stripe')
 ```
