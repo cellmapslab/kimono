@@ -176,10 +176,6 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
   doParallel::registerDoParallel(cl)
   result <- foreach(node_name = node_names, .combine = 'rbind', .packages = 'kimono')  %dopar% {
 
-    source('~/2019_tryibd/kimono/R/create_prior.R')
-    source('~/2019_tryibd/kimono/R/infer_sgl_model.R')
-    source('~/2019_tryibd/kimono/R/kimono.R')
-    source('~/2019_tryibd/kimono/R/utility_functions.R')
     library(igraph)
     library(data.table)
     library(dplyr)
