@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Example.knit</title>
+
+<script src="Example_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="Example_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="Example_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="Example_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="Example_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="Example_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="Example_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="Example_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="Example_files/navigation-1.1/tabsets.js"></script>
+<link href="Example_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="Example_files/highlightjs-9.12.0/highlight.js"></script>
+<script src="Example_files/htmlwidgets-1.5.4/htmlwidgets.js"></script>
+<link href="Example_files/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
+<script src="Example_files/datatables-binding-0.19/datatables.js"></script>
+<link href="Example_files/dt-core-1.10.20/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="Example_files/dt-core-1.10.20/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="Example_files/dt-core-1.10.20/js/jquery.dataTables.min.js"></script>
+<link href="Example_files/crosstalk-1.1.1/css/crosstalk.css" rel="stylesheet" />
+<script src="Example_files/crosstalk-1.1.1/js/crosstalk.min.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore"><div class="mytitle">
+KiMONo
+</div>
+Knowledge Guided Multi-Omic Network Inference</h1>
+<h4 class="author"><center>
+<a href="https://github.com/cellmapslab/kimono">Christoph Ogris</a>
+</center></h4>
+<h4 class="date"><center>
+21 Oktober 2021
+</center></h4>
+
+</div>
+
+
+<p><br><br></p>
+<blockquote>
+<p>This is a tutorial for multi-modal graph inference and analysis using the KiMONo framework on fictional data. <br> <a href="https://www.nature.com/articles/s41598-021-85544-4">Ogris et. al, 2021</a></p>
+</blockquote>
+<center>
+<img src="intro.png" alt="Figure 1" style="width:80.0%" />
+</center>
+<p><br><br></p>
+<p>Graph inference from multimodal biological data sets of different measurement techniques has always been a big challenge in life sicience. KiMONo infers a multimodal graph by creating a sparse group lasso regression model for each feature. The method uses prior knowledge to pre-weight features. All trained models are then combined in a graph. Here nodes represent an individual input feature, like blood parameters, genes or proteins, and edges are modeled relations between them..</p>
+<div id="data-libraries" class="section level1">
+<h1>Data &amp; Libraries</h1>
+<hr />
+<div id="libraries" class="section level2">
+<h2>Libraries</h2>
+<pre class="r"><code>library(kimono) # framework
+
+#Dependencies
+library(igraph) # network structures and statistics
+library(data.table) # replacing data frames
+library(oem)  # SGL implementation
+library(foreach) # Paralellization
+library(doParallel) # multi-core support
+library(dplyr)  
+library(tidyverse)
+
+
+#Visualization
+library(ggplot2)
+library(cowplot) 
+library(DT)</code></pre>
+</div>
+<div id="mulit-modal-data" class="section level2">
+<h2>Mulit-modal data</h2>
+<div id="loading" class="section level3">
+<h3>Loading</h3>
+<p>In this example we look at fictional transcriptomic, proteomic and phenotypic data.</p>
+<ul>
+<li>Rows represent samples</li>
+<li>Columns represent features</li>
+</ul>
+<pre class="r"><code>phenotype &lt;- fread(&quot;data/phenotype.csv&quot;)
+head(phenotype)</code></pre>
+<pre><code>##      sample z
+## 1: Sample_1 A
+## 2: Sample_2 A
+## 3: Sample_3 A
+## 4: Sample_4 A
+## 5: Sample_5 A
+## 6: Sample_6 A</code></pre>
+<pre class="r"><code>transcriptome &lt;- fread(&quot;data/expression.csv&quot;)
+head(transcriptome)</code></pre>
+<pre><code>##      sample   gene_A   gene_B     gene_C    gene_D   gene_E
+## 1: Sample_1 4.421168 42.67473  8.0643223 17.423778  3.51714
+## 2: Sample_2 4.958355 55.95279  3.2513866 13.453309 14.35695
+## 3: Sample_3 3.750884 27.60191  0.9243902  8.217539 14.72366
+## 4: Sample_4 5.178879 41.32921  3.4939899 12.020479 22.20549
+## 5: Sample_5 3.504407 40.05374  5.3195318 11.271656 12.03692
+## 6: Sample_6 4.177704 20.10804 13.2669418  5.013483 11.19223</code></pre>
+<pre class="r"><code>proteome &lt;- fread(&quot;data/proteome.csv&quot;)
+head(proteome)</code></pre>
+<pre><code>##      sample         m        n        o          p         q
+## 1: Sample_1 -3.862189 4.005114 5.217761 -1.5971561 0.1723373
+## 2: Sample_2 -4.332433 4.791025 2.783295  1.3791251 2.8937777
+## 3: Sample_3 -5.422645 3.436808 6.393865 -5.2178824 1.2808751
+## 4: Sample_4 -6.102196 4.213826 4.567969 -1.1465640 2.9405095
+## 5: Sample_5 -4.483278 4.977083 7.114059  0.7268057 0.1288424
+## 6: Sample_6 -7.750421 3.765839 5.080652  1.1494149 3.1470027</code></pre>
+</div>
+<div id="preprocessing" class="section level3">
+<h3>Preprocessing</h3>
+<div id="matched-samples" class="section level4">
+<h4>Matched samples</h4>
+<p>KiMONo relies on the fact that we feed it with matched samples. Meaning each row in each data type must represent the same sample.</p>
+<pre class="r"><code>phenotype &lt;- phenotype[match(transcriptome$sample, phenotype$sample),]
+proteome &lt;- proteome[match(transcriptome$sample, proteome$sample),]</code></pre>
+</div>
+<div id="dummy-coding" class="section level4">
+<h4>Dummy coding</h4>
+<pre class="r"><code>phenotype$z %&gt;% head</code></pre>
+<pre><code>## [1] &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot; &quot;A&quot;</code></pre>
+<p>Character based variables must be either dummy coded or excluded</p>
+<pre class="r"><code>phenotype$z &lt;- phenotype$z %&gt;% as.factor %&gt;% as.numeric
+phenotype$z %&gt;% head</code></pre>
+<pre><code>## [1] 1 1 1 1 1 1</code></pre>
+</div>
+</div>
+<div id="final" class="section level3">
+<h3>Final</h3>
+<pre class="r"><code>input_data &lt;- list(
+  &#39;gene&#39; = transcriptome[,-&quot;sample&quot;],
+  &#39;protein&#39; = proteome[,-&quot;sample&quot;],
+  &#39;phenotype&#39; = phenotype[,-&quot;sample&quot;]
+)
+
+#it is recommended to remove the original data to free some memory
+rm(transcriptome,phenotype,proteome)</code></pre>
+</div>
+</div>
+<div id="prior-data" class="section level2">
+<h2>Prior data</h2>
+<hr />
+<p>KiMONo convert a simple csv based files to a prior network which suits us as an inference blueprint.</p>
+<div id="loading-1" class="section level3">
+<h3>Loading</h3>
+<pre class="r"><code>gene_gene &lt;- fread(&quot;data/mapping_expr.csv&quot;)
+gene_gene %&gt;% head</code></pre>
+<pre><code>##         x      y
+## 1: gene_A gene_A
+## 2: gene_B gene_A
+## 3: gene_C gene_A
+## 4: gene_D gene_A
+## 5: gene_E gene_A
+## 6: gene_A gene_B</code></pre>
+<pre class="r"><code>gene_proteome &lt;- fread(&quot;data/mapping_expr_prot.csv&quot;)
+gene_proteome %&gt;% head</code></pre>
+<pre><code>##         x y
+## 1: gene_A m
+## 2: gene_B m
+## 3: gene_C m
+## 4: gene_D m
+## 5: gene_E m
+## 6: gene_A n</code></pre>
+<blockquote>
+<p>Each row represents a pair of features which is <strong>known</strong> to be related.</p>
+</blockquote>
+</div>
+<div id="preprocessing-1" class="section level3">
+<h3>Preprocessing</h3>
+<div id="prior-map" class="section level4">
+<h4>Prior map</h4>
+<p>We have to add more layer information in order to let KiMONo know which mapping belongs to which features</p>
+<pre class="r"><code>transcriptome_map &lt;- load_mapping(gene_gene, layers = c(&#39;gene&#39;,&#39;gene&#39;)) #mapping between transcriptomic features
+proteome_map &lt;- load_mapping(gene_proteome, layers = c(&#39;gene&#39;,&#39;protein&#39;))#mapping between transcriptome and phenome
+
+
+prior_map &lt;- rbind(transcriptome_map,proteome_map) ## combine mappings</code></pre>
+</div>
+</div>
+<div id="final-1" class="section level3">
+<h3>Final</h3>
+<p>KiMONo uses the <strong>igraph package</strong> to efficiently incorporate the prior information.</p>
+<pre class="r"><code>prior_network &lt;- create_prior_network(prior_map) ## prior network</code></pre>
+<div id="plotting-prior-network" class="section level4">
+<h4>Plotting prior network</h4>
+<pre class="r"><code>vertex &lt;- do.call(rbind,strsplit(V(prior_network)$name,split = &#39;___&#39;))
+
+prior_network %&gt;% plot(edge.curved=1,
+     vertex.color = c(&quot;steel blue&quot;, &quot;orange&quot;)[vertex[,1] %&gt;% as.factor %&gt;% as.numeric],
+     vertex.frame.color=&quot;white&quot;,
+     vertex.label = vertex[,2], 
+     vertex.label.color=&#39;black&#39;,
+     vertex.label.cex=.7,
+     layout=layout_randomly, rescale=F) 
+legend(x=-1.5, y=-1.1, c(&quot;Genes&quot;,&quot;Proteins&quot;), pch=21,
+       col=&quot;#777777&quot;, pt.bg=c(&quot;steel blue&quot;, &quot;orange&quot;), pt.cex=2, cex=.8, bty=&quot;n&quot;, ncol=1)</code></pre>
+<p><img src="Example_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+</div>
+</div>
+</div>
+</div>
+<div id="kimono" class="section level1">
+<h1>KiMONo</h1>
+<hr />
+<p>Inference steps:</p>
+<ol style="list-style-type: decimal">
+<li>Load the prior</li>
+<li>Check if there arre layers without priors if so the algorithm will add each features to every model</li>
+<li>Iterate over each data type</li>
+<li>Train a Sparse Group Lasso model for each node(target or y) in the prior network and determine the:
+<ul>
+<li>effects sizes of connected features (predictors)</li>
+<li>r squared</li>
+<li>mse</li>
+</ul></li>
+<li>Combine all models</li>
+</ol>
+<div id="model" class="section level2">
+<h2>Model</h2>
+<p>Regression model: <span class="math display">\[\begin{aligned} y \sim X\beta + \epsilon \\       \end{aligned}\]</span></p>
+<p>Sparse Group Lasso penalty: <span class="math display">\[  \frac{1}{2n} \Bigg|\Bigg| y - \sum_{l=1}^{m} X^{(l)} \beta^{(l)} \Bigg|\Bigg|_{2}^{2} + ( 1 - \alpha ) \lambda \sum_{l=1}^{m} \sqrt{p_{l}}\big|\big|\beta^{(l)}\big|\big|_2  + \alpha\lambda\big|\big|\beta \big|\big|_1 \]</span></p>
+</div>
+<div id="call-kimono" class="section level2">
+<h2>Call KiMONo</h2>
+<pre class="r"><code>network &lt;- kimono(input_data, prior_network ,core = 2)</code></pre>
+<pre><code>## gene prior coverage  1 
+## protein prior coverage  1 
+##  starting gene prior coverage  0.8 
+## protein prior coverage  0.4 
+## phenotype prior coverage  1 
+## DONE</code></pre>
+</div>
+<div id="output" class="section level2">
+<h2>Output</h2>
+<p>Columns:</p>
+<ul>
+<li><strong>target</strong> - vector y in regression model</li>
+<li><strong>predictor</strong> - each feature in X used in model y</li>
+<li><strong>value</strong> - effect size of predictor on target</li>
+<li><strong>r_squared</strong> - model performance</li>
+<li><strong>mse</strong> - model error</li>
+<li><strong>predictor_layer</strong> - input data the predictor belongs to</li>
+<li><strong>target_layer</strong> - input data the target belongs to</li>
+</ul>
+<pre class="r"><code>DT::datatable(head(network), class = &#39;cell-border stripe&#39;)</code></pre>
+<div id="htmlwidget-ef0f8001b18ed35a16bc" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-ef0f8001b18ed35a16bc">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["gene_B","gene_B","gene_B","gene_B","gene_B","gene_B"],["(Intercept)","gene_A","gene_C","gene_D","gene_E","m"],[-8.51582596336706e-19,0,0,0.0622081704422632,0,0],[0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509],[0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681],["(Intercept)","gene","gene","gene","gene","protein"],["gene","gene","gene","gene","gene","gene"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>target<\/th>\n      <th>predictor<\/th>\n      <th>value<\/th>\n      <th>r_squared<\/th>\n      <th>mse<\/th>\n      <th>predictor_layer<\/th>\n      <th>target_layer<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div id="network-analysis" class="section level1">
+<h1>Network Analysis</h1>
+<hr />
+<div id="quality" class="section level2">
+<h2>Quality</h2>
+<p>Evaluating the r2 for each model gives us the possibility to compare the performances of our models.</p>
+<blockquote>
+<p>Note the rsquared is the same for each target.</p>
+</blockquote>
+<pre class="r"><code>gg_all &lt;- network[predictor == &#39;(Intercept)&#39;,] %&gt;%  
+            ggplot( aes(y=r_squared))  +
+                    geom_boxplot()
+
+gg_grouped &lt;- network[predictor == &#39;(Intercept)&#39;,] %&gt;%  
+            ggplot( aes(y=r_squared,x=target_layer))  +   
+                    geom_boxplot(fill=c(&quot;steel blue&quot;,&#39;#842F39&#39;, &quot;orange&quot;))
+
+plot_grid(gg_all, gg_grouped, rel_widths = c(1, 2))</code></pre>
+<p><img src="Example_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<pre class="r"><code>nnodes &lt;- c(network$target, network$predictor) %&gt;% unique %&gt;% length
+nedges &lt;- dim(network)[1]
+
+cat(&#39;Number of Nodes: &#39;,nnodes)</code></pre>
+<pre><code>## Number of Nodes:  12</code></pre>
+<pre class="r"><code>cat(&#39;Number of Edges: &#39;,nedges)</code></pre>
+<pre><code>## Number of Edges:  65</code></pre>
+</div>
+<div id="filter-network" class="section level2">
+<h2>Filter network</h2>
+<p>Often we are only interested in models which perform well and have large effect sizes.</p>
+<pre class="r"><code>network &lt;- network %&gt;% 
+  filter(value &gt; 0.001 | value &lt; -0.001 ) %&gt;% # filter low effects
+  filter(r_squared &gt; 0.001)  %&gt;%  # filter low performing models
+  filter(predictor != &#39;(Intercept)&#39;) # filter all intercepts (should be close to 0 due to normalization step)
+
+nnodes &lt;- c(network$target, network$predictor) %&gt;% unique %&gt;% length
+nedges &lt;- dim(network)[1]
+
+cat(&#39;Number of Nodes: &#39;,nnodes)</code></pre>
+<pre><code>## Number of Nodes:  9</code></pre>
+<pre class="r"><code>cat(&#39;Number of Edges: &#39;,nedges)</code></pre>
+<pre><code>## Number of Edges:  20</code></pre>
+</div>
+<div id="statistics" class="section level2">
+<h2>Statistics</h2>
+<pre class="r"><code>  ig_network &lt;- network
+    # often genes and proteins share names 
+    # igraph requiers a unique ID
+    # hence its getting a bit complicated
+  ig_network$predictor &lt;- paste0(network$predictor_layer,&quot;___&quot;,network$predictor) 
+  ig_network$target &lt;- paste0(network$target_layer,&quot;___&quot;,network$target)
+  
+  lable &lt;- unique( c( ig_network$predictor, ig_network$target ) )
+  nodes &lt;- data.frame(id = lable, 
+                      data_layer = do.call(rbind, strsplit(lable,&quot;___&quot;) )[,1]
+                       )
+  
+  ig &lt;- graph_from_data_frame(ig_network, vertices=nodes, directed = TRUE)</code></pre>
+<div id="visualize" class="section level3">
+<h3>Visualize</h3>
+<pre class="r"><code>vertex &lt;- do.call(rbind,strsplit(V(ig)$name,split = &#39;___&#39;))
+l &lt;- layout_with_kk(ig)
+plot(ig,
+     edge.curved=0,
+     vertex.color = c(&quot;steel blue&quot;,&#39;#842F39&#39;, &quot;orange&quot;)[vertex[,1] %&gt;% as.factor %&gt;% as.numeric],
+     vertex.frame.color=&quot;white&quot;,
+     vertex.label = vertex[,2], 
+     vertex.label.color=&#39;black&#39;,
+     vertex.label.cex=.7,
+     layout=l,
+     rescale=F
+     ) 
+
+ legend(x=-1.5, y=-1.1, c(&quot;Genes&quot;,&quot;Phenotype&quot;,&quot;Proteins&quot;), pch=21,
+     col=&quot;#777777&quot;, pt.bg=c(&quot;steel blue&quot;,&quot;#842F39&quot;, &quot;orange&quot;), pt.cex=2, cex=.8, bty=&quot;n&quot;, ncol=1)</code></pre>
+<p><img src="Example_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+</div>
+<div id="statistics-1" class="section level3">
+<h3>Statistics</h3>
+<div id="general" class="section level4">
+<h4>General</h4>
+<pre class="r"><code>cat(&#39;Density: &#39;, ecount(ig)/(vcount(ig)*(vcount(ig)-1)), &#39;\n&#39; )</code></pre>
+<pre><code>## Density:  0.2777778</code></pre>
+<pre class="r"><code>cat(&#39;Reciprocity: &#39;, reciprocity(ig) , &#39;\n&#39; )</code></pre>
+<pre><code>## Reciprocity:  0.7</code></pre>
+<pre class="r"><code>cat(&#39;Transitivity: &#39;, transitivity(as.undirected(ig, mode=&quot;collapse&quot;)) , &#39;\n&#39; )</code></pre>
+<pre><code>## Transitivity:  0.483871</code></pre>
+</div>
+<div id="node-degree-distribution" class="section level4">
+<h4>Node degree &amp; distribution</h4>
+<pre class="r"><code>deg &lt;- degree(ig, mode=&quot;all&quot;)
+cat(&#39;Average node degree: &#39;, mean(deg), &#39;\n&#39; )</code></pre>
+<pre><code>## Average node degree:  4.444444</code></pre>
+<pre class="r"><code>hist(deg, breaks=1:vcount(ig)-1, main=&quot;Histogram of node degree&quot;)</code></pre>
+<p><img src="Example_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<pre class="r"><code>deg.dist &lt;- degree_distribution(ig, cumulative=T, mode=&quot;all&quot;)
+
+plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.2, col=&quot;orange&quot;, 
+
+      xlab=&quot;Degree&quot;, ylab=&quot;Cumulative Frequency&quot;)</code></pre>
+<p><img src="Example_files/figure-html/unnamed-chunk-18-2.png" width="672" /> #### Hubs and authorities &gt; Hubs were expected to contain catalogs with a large number of outgoing links;</p>
+<pre class="r"><code>hs &lt;- hub_score(ig, weights=NA)$vector
+
+
+
+plot(ig,
+     edge.curved=0,
+     vertex.color = c(&quot;steel blue&quot;,&#39;#842F39&#39;, &quot;orange&quot;)[vertex[,1] %&gt;% as.factor %&gt;% as.numeric],
+     vertex.frame.color=&quot;white&quot;,
+     vertex.label = vertex[,2], 
+     vertex.label.color=&#39;black&#39;,
+     vertex.label.cex=.7,
+     layout=l,
+     rescale=F,
+     vertex.size=hs*20, main=&quot;Hubs&quot;
+     ) 
+
+ legend(x=-1.5, y=-1.1, c(&quot;Genes&quot;,&quot;Phenotype&quot;,&quot;Proteins&quot;), pch=21,
+     col=&quot;#777777&quot;, pt.bg=c(&quot;steel blue&quot;,&quot;#842F39&quot;, &quot;orange&quot;), pt.cex=2, cex=.8, bty=&quot;n&quot;, ncol=1)</code></pre>
+<p><img src="Example_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<blockquote>
+<p>while authorities would get many incoming links from hubs</p>
+</blockquote>
+<pre class="r"><code>as &lt;- authority_score(ig, weights=NA)$vector
+plot(ig,
+     edge.curved=0,
+     vertex.color = c(&quot;steel blue&quot;,&#39;#842F39&#39;, &quot;orange&quot;)[vertex[,1] %&gt;% as.factor %&gt;% as.numeric],
+     vertex.frame.color=&quot;white&quot;,
+     vertex.label = vertex[,2], 
+     vertex.label.color=&#39;black&#39;,
+     vertex.label.cex=.7,
+     layout=l,
+     rescale=F,
+     vertex.size=as*20, main=&quot;Authorities&quot;
+     ) 
+
+ legend(x=-1.5, y=-1.1, c(&quot;Genes&quot;,&quot;Phenotype&quot;,&quot;Proteins&quot;), pch=21,
+     col=&quot;#777777&quot;, pt.bg=c(&quot;steel blue&quot;,&quot;#842F39&quot;, &quot;orange&quot;), pt.cex=2, cex=.8, bty=&quot;n&quot;, ncol=1)</code></pre>
+<p><img src="Example_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+</div>
+</div>
+</div>
+</div>
+<div id="troubleshooting" class="section level1">
+<h1>Troubleshooting</h1>
+<hr />
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<p>You can either install KiMONo locally by cloning the repository or using the devtools package.</p>
+<div id="github-installation" class="section level3">
+<h3>Github Installation</h3>
+<ol style="list-style-type: decimal">
+<li>Install the devtools package and load it in R</li>
+</ol>
+<pre class="r"><code>install.packages(&quot;devtools&quot;)
+library(devtools)</code></pre>
+<ol start="2" style="list-style-type: decimal">
+<li>Install KiMONo in R and load the package</li>
+</ol>
+<pre class="r"><code>install_github(&quot;cellmapslab/kimono&quot;)
+library(kimono)</code></pre>
+</div>
+<div id="local-installation" class="section level3">
+<h3>Local Installation</h3>
+<ol style="list-style-type: decimal">
+<li><p>In your terminal change the working directory to the location you want to install KiMONo</p></li>
+<li><p>Clone the repository:</p></li>
+</ol>
+<pre class="sh"><code>git clone https://github.com/cellmapslab/kimono.git</code></pre>
+<ol start="3" style="list-style-type: decimal">
+<li>Install KiMONo in R and load the package</li>
+</ol>
+<pre class="r"><code>install.packages(&quot;yourpath/kimono/&quot;, repos = NULL, type = &quot;source&quot;)
+library(kimono)</code></pre>
+</div>
+</div>
+<div id="installing-dependencies-centos" class="section level2">
+<h2>Installing dependencies CentOS</h2>
+<div id="oem" class="section level3">
+<h3>oem</h3>
+<p>CentOS needs a different version of RcppArmadillo(<a href="https://www.gitmemory.com/RcppCore" class="uri">https://www.gitmemory.com/RcppCore</a>)</p>
+<pre class="r"><code> install.packages(&quot;RcppArmadillo&quot;, repos=&quot;https://rcppcore.github.io/drat&quot;)</code></pre>
+</div>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = false;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

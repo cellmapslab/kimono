@@ -1,0 +1,140 @@
+
+.modebar{
+      display: none !important;
+}
+
+/* Just for fun, a bit of customization for title and text.. */
+.mytitle{
+  text-transform: uppercase;
+  font-family: 'Montserrat';
+  font-size: 120%;
+  font-weight: 300;
+  letter-spacing: 4px;
+}
+
+.mysubtitle{
+  color:grey;
+  font-family: 'Montserrat';
+}
+
+h1, .h1, h2, .h2, h3, .h3 {
+    margin-top: 84px;
+    font-family: 'Montserrat';
+}
+
+h1 {
+  padding-top: 100px;
+    font-family: 'Montserrat';
+}
+
+h1.title {
+  text-align: center;
+    font-family: 'Montserrat';
+}
+
+pre {
+    border: 0px solid #cccccc;
+    border-radius: 0px;
+ }
+
+p.caption {
+  font-size: 0.9em;
+  font-style: italic;
+  color: grey;
+  margin-right: 10%;
+  margin-left: 10%;
+  text-align: justify;
+}
+
+/* ---------- Links ----------------- */
+a {
+  color: #842F39;
+}
+a:hover {
+  color: #842F39;
+}
+
+
+
+
+/* ---------- TOC ----------------- */
+#TOC {
+  background: url("logo.png");
+  padding-top: 80px !important;
+  background-repeat: no-repeat;
+  top: 40%;
+  position: fixed;
+  width: 210px;
+}
+
+.tocify {
+  border: none;
+  color: grey;
+  border-radius: 0px;
+}
+.list-group-item.active {
+    color: #842F39;
+    background-color: white;
+    border-left: solid;
+    border-color: #842F39;
+}
+.list-group-item:hover {
+    color: #842F39;
+    background-color: white;
+    border-left: solid;
+    border-color: #842F39;
+}
+/*
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+    z-index: 2;
+    color: #fff;
+    background-color: #842F39;
+    border-color: #842F39;
+}
+*/
+.list-group-item.active:focus, .list-group-item.active:hover {
+    z-index: 2;
+    color: #fff;
+    background-color: #842F39;
+    border-color: #842F39;
+}
+
+
+.tocify-extend-page {
+  display: none;
+}
+
+/* ------ This is just to fix the bug on Safari where table of content is on top of content */
+.toc-content {
+  margin-left: 210px
+}
+
+/* ------ Don't display on small media */
+@media (max-width: 1400px) {
+  #TOC {
+    width: auto;
+    display: none;
+  }
+  .toc-content {
+    margin-left: auto
+  }
+}
+
+
+
+/* ---------- Button ----------------- */
+.btn {
+    border-width: 0 0px 0px 0px;
+    font-weight: normal;
+    text-transform: ;
+    color: #842F39;
+}
+.btn-default {
+    color: #842F39;
+    background-color: #ffffff;
+    border-color: #ffffff;
+}
+
+.nav-pills > li.active > a, .nav-pills > li.active > a:hover, .nav-pills > li.active > a:focus {
+    background-color: #842F39;
+}

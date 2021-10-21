@@ -1,0 +1,402 @@
+---
+title: "<div class='mytitle'>KiMONo</div>Knowledge Guided Multi-Omic Network Inference"
+author: "<center>[Christoph Ogris](https://github.com/cellmapslab/kimono) </center>"
+date: "<center>`r format(Sys.time(), '%d %B %Y')`</center>"
+mail: "christoph.ogris@helmholtz-muenchen.de"
+linkedin: "christoph-ogris-6a223082"
+twitter: "christoph_ogris"
+github: "00chris00"
+home: "www.helmholtz-muenchen.de/icb/index.html"
+# !!! You need to provide a logo image here !!! Or just delete the field for no logo
+logo: "logo.png"
+
+output:
+  lazyrmd::lazy_render:
+    toc: TRUE
+    toc_float:
+      collapsed: true
+      smooth_scroll: false
+    number_sections: FALSE
+    css: style.css
+    self_contained: false
+---
+
+
+<br><br>
+
+> This is a tutorial for multi-modal graph inference and analysis using the KiMONo framework on fictional data. <br> [Ogris et. al, 2021](https://www.nature.com/articles/s41598-021-85544-4)
+
+
+<center>![Figure 1](intro.png){width='80%'}</center>
+<br><br>
+
+Graph inference from multimodal biological data sets of different measurement techniques has always been a big challenge in life sicience. KiMONo infers a multimodal graph by creating a sparse group lasso regression model for each feature. The method uses prior knowledge to pre-weight features. All trained models are then combined in a graph. Here nodes represent an individual input feature, like blood parameters, genes or proteins, and edges are modeled relations between them..
+
+
+
+# Data
+***
+## Libraries
+```{r, warning = FALSE,  message=FALSE}
+library(kimono) # framework
+
+#Dependencies
+library(igraph) # network structures and statistics
+library(data.table) # replacing data frames
+library(oem)  # SGL implementation
+library(foreach) # Paralellization
+library(doParallel) # multi-core support
+library(dplyr)  
+library(tidyverse)
+
+
+#Visualization
+library(ggplot2)
+library(cowplot) 
+library(DT)
+
+```
+## Mulit-modal data
+### Loading
+In this example we look at fictional transcriptomic, proteomic and phenotypic data.
+
+* Rows represent samples
+* Columns represent features
+
+```{r, warning = FALSE}
+phenotype <- fread("data/phenotype.csv")
+head(phenotype)
+
+transcriptome <- fread("data/expression.csv")
+head(transcriptome)
+
+proteome <- fread("data/proteome.csv")
+head(proteome)
+```
+
+### Preprocessing
+#### Matched samples
+KiMONo relies on the fact that we feed it with matched samples. Meaning each row in each data type must represent the same sample.
+```{r, warning = FALSE}
+phenotype <- phenotype[match(transcriptome$sample, phenotype$sample),]
+proteome <- proteome[match(transcriptome$sample, proteome$sample),]
+```
+
+#### Dummy coding
+```{r, warning = FALSE}
+phenotype$z %>% head
+```
+
+Character based variables must be either dummy coded or excluded
+```{r, warning = FALSE}
+phenotype$z <- phenotype$z %>% as.factor %>% as.numeric
+phenotype$z %>% head
+```
+
+### Final
+```{r, warning = FALSE}
+input_data <- list(
+  'gene' = transcriptome[,-"sample"],
+  'protein' = proteome[,-"sample"],
+  'phenotype' = phenotype[,-"sample"]
+)
+
+#it is recommended to remove the original data to free some memory
+rm(transcriptome,phenotype,proteome)
+```
+
+## Prior data
+***
+KiMONo convert a simple csv based files to a prior network which suits us as an inference blueprint. 
+
+### Loading
+```{r, warning = FALSE}
+gene_gene <- fread("data/mapping_expr.csv")
+gene_gene %>% head
+gene_proteome <- fread("data/mapping_expr_prot.csv")
+gene_proteome %>% head
+```
+
+> Each row represents a pair of features which is **known** to be related.
+
+
+### Preprocessing
+#### Prior map
+We have to add more layer information in order to let KiMONo know which mapping belongs to which features
+```{r, warning = FALSE}
+transcriptome_map <- load_mapping(gene_gene, layers = c('gene','gene')) #mapping between transcriptomic features
+proteome_map <- load_mapping(gene_proteome, layers = c('gene','protein'))#mapping between transcriptome and phenome
+
+
+prior_map <- rbind(transcriptome_map,proteome_map) ## combine mappings
+```
+
+### Final
+KiMONo uses the **igraph package** to efficiently incorporate the prior information.
+```{r, warning = FALSE}
+prior_network <- create_prior_network(prior_map) ## prior network
+```
+
+#### Plotting prior network
+```{r, warning = FALSE}
+vertex <- do.call(rbind,strsplit(V(prior_network)$name,split = '___'))
+
+prior_network %>% plot(edge.curved=1,
+     vertex.color = c("steel blue", "orange")[vertex[,1] %>% as.factor %>% as.numeric],
+     vertex.frame.color="white",
+     vertex.label = vertex[,2], 
+     vertex.label.color='black',
+     vertex.label.cex=.7,
+     layout=layout_randomly, rescale=F) 
+legend(x=-1.5, y=-1.1, c("Genes","Proteins"), pch=21,
+       col="#777777", pt.bg=c("steel blue", "orange"), pt.cex=2, cex=.8, bty="n", ncol=1)
+```
+
+# KiMONo
+***
+
+Inference steps: 
+
+1) Load the prior
+2) Check if there arre layers without priors if so the algorithm will add each features to every model
+3) Iterate over each data type 
+4) Train a Sparse Group Lasso model for each node(target or y) in the prior network and determine the:
+    * effects sizes of connected features (predictors)
+    * r squared 
+    * mse
+5) Combine all models
+
+## Model 
+Regression model:
+\[\begin{aligned} y \sim X\beta + \epsilon \\		\end{aligned}\]
+		
+Sparse Group Lasso penalty:
+\[  \frac{1}{2n} \Bigg|\Bigg| y - \sum_{l=1}^{m} X^{(l)} \beta^{(l)} \Bigg|\Bigg|_{2}^{2} + ( 1 - \alpha ) \lambda \sum_{l=1}^{m} \sqrt{p_{l}}\big|\big|\beta^{(l)}\big|\big|_2  + \alpha\lambda\big|\big|\beta \big|\big|_1 \]
+
+## Call KiMONo
+```{r, warning = FALSE}
+network <- kimono(input_data, prior_network ,core = 2)
+```
+
+## Output
+
+Columns:
+
+  * **target** - vector y in regression model
+  * **predictor** - each feature in X used in model y
+  * **value** - effect size of predictor on target
+  * **r_squared** - model performance
+  * **mse** - model error
+  * **predictor_layer** - input data the predictor belongs to
+  * **target_layer** - input data the target belongs to
+
+
+```{r, warning = FALSE}
+DT::datatable(head(network), class = 'cell-border stripe')
+```
+
+
+# Network Analysis
+***
+
+## Quality
+
+Evaluating the r2 for each model gives us the possibility to compare the performances of our models.
+
+> Note the rsquared is the same for each target.  
+
+```{r, warning = FALSE}
+gg_all <- network[predictor == '(Intercept)',] %>%  
+            ggplot( aes(y=r_squared))  +
+                    geom_boxplot()
+
+gg_grouped <- network[predictor == '(Intercept)',] %>%  
+            ggplot( aes(y=r_squared,x=target_layer))  +   
+                    geom_boxplot(fill=c("steel blue",'#842F39', "orange"))
+
+plot_grid(gg_all, gg_grouped, rel_widths = c(1, 2))
+
+
+nnodes <- c(network$target, network$predictor) %>% unique %>% length
+nedges <- dim(network)[1]
+
+cat('Number of Nodes: ',nnodes)
+cat('Number of Edges: ',nedges)
+```
+
+
+## Filter network 
+Often we are only interested in models which perform well and have large effect sizes.
+```{r, warning = FALSE}
+network <- network %>% 
+  filter(value > 0.001 | value < -0.001 ) %>% # filter low effects
+  filter(r_squared > 0.001)  %>%  # filter low performing models
+  filter(predictor != '(Intercept)') # filter all intercepts (should be close to 0 due to normalization step)
+
+nnodes <- c(network$target, network$predictor) %>% unique %>% length
+nedges <- dim(network)[1]
+
+cat('Number of Nodes: ',nnodes)
+cat('Number of Edges: ',nedges)
+```
+
+
+## Statistics
+
+```{r, warning = FALSE}
+  ig_network <- network
+    # often genes and proteins share names 
+    # igraph requiers a unique ID
+    # hence its getting a bit complicated
+  ig_network$predictor <- paste0(network$predictor_layer,"___",network$predictor) 
+  ig_network$target <- paste0(network$target_layer,"___",network$target)
+  
+  lable <- unique( c( ig_network$predictor, ig_network$target ) )
+  nodes <- data.frame(id = lable, 
+                      data_layer = do.call(rbind, strsplit(lable,"___") )[,1]
+                       )
+  
+  ig <- graph_from_data_frame(ig_network, vertices=nodes, directed = TRUE)
+```
+
+### Visualize
+```{r, warning = FALSE}
+vertex <- do.call(rbind,strsplit(V(ig)$name,split = '___'))
+l <- layout_with_kk(ig)
+plot(ig,
+     edge.curved=0,
+     vertex.color = c("steel blue",'#842F39', "orange")[vertex[,1] %>% as.factor %>% as.numeric],
+     vertex.frame.color="white",
+     vertex.label = vertex[,2], 
+     vertex.label.color='black',
+     vertex.label.cex=.7,
+     layout=l,
+     rescale=F
+     ) 
+
+ legend(x=-1.5, y=-1.1, c("Genes","Phenotype","Proteins"), pch=21,
+     col="#777777", pt.bg=c("steel blue","#842F39", "orange"), pt.cex=2, cex=.8, bty="n", ncol=1)
+     
+```
+
+### Statistics
+#### General
+```{r, warning = FALSE}
+cat('Density: ', ecount(ig)/(vcount(ig)*(vcount(ig)-1)), '\n' )
+cat('Reciprocity: ', reciprocity(ig) , '\n' )
+cat('Transitivity: ', transitivity(as.undirected(ig, mode="collapse")) , '\n' )
+
+```
+#### Node degree & distribution
+```{r, warning = FALSE}
+
+deg <- degree(ig, mode="all")
+cat('Average node degree: ', mean(deg), '\n' )
+
+hist(deg, breaks=1:vcount(ig)-1, main="Histogram of node degree")
+
+deg.dist <- degree_distribution(ig, cumulative=T, mode="all")
+
+plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.2, col="orange", 
+
+      xlab="Degree", ylab="Cumulative Frequency")
+
+```
+#### Hubs and authorities
+> Hubs were expected to contain catalogs with a large number of outgoing links; 
+
+```{r, warning = FALSE}
+
+hs <- hub_score(ig, weights=NA)$vector
+
+
+
+plot(ig,
+     edge.curved=0,
+     vertex.color = c("steel blue",'#842F39', "orange")[vertex[,1] %>% as.factor %>% as.numeric],
+     vertex.frame.color="white",
+     vertex.label = vertex[,2], 
+     vertex.label.color='black',
+     vertex.label.cex=.7,
+     layout=l,
+     rescale=F,
+     vertex.size=hs*20, main="Hubs"
+     ) 
+
+ legend(x=-1.5, y=-1.1, c("Genes","Phenotype","Proteins"), pch=21,
+     col="#777777", pt.bg=c("steel blue","#842F39", "orange"), pt.cex=2, cex=.8, bty="n", ncol=1)
+ 
+```
+
+> while authorities would get many incoming links from hubs
+
+```{r, warning = FALSE}
+as <- authority_score(ig, weights=NA)$vector
+plot(ig,
+     edge.curved=0,
+     vertex.color = c("steel blue",'#842F39', "orange")[vertex[,1] %>% as.factor %>% as.numeric],
+     vertex.frame.color="white",
+     vertex.label = vertex[,2], 
+     vertex.label.color='black',
+     vertex.label.cex=.7,
+     layout=l,
+     rescale=F,
+     vertex.size=as*20, main="Authorities"
+     ) 
+
+ legend(x=-1.5, y=-1.1, c("Genes","Phenotype","Proteins"), pch=21,
+     col="#777777", pt.bg=c("steel blue","#842F39", "orange"), pt.cex=2, cex=.8, bty="n", ncol=1)
+ 
+
+
+```
+
+
+
+# Troubleshooting
+***
+## Installation
+
+You can either install KiMONo locally by cloning the repository or using the devtools package.
+
+### Github Installation
+
+1. Install the devtools package and load it in R
+
+```{r ,eval = FALSE }
+install.packages("devtools")
+library(devtools)
+```
+
+2. Install KiMONo in R and load the package
+```{r , eval = FALSE }
+install_github("cellmapslab/kimono")
+library(kimono)
+```
+
+### Local Installation
+
+1. In your terminal change the working directory to the location you want to install KiMONo 
+
+2. Clone the repository: 
+```{sh , eval = FALSE }
+git clone https://github.com/cellmapslab/kimono.git
+```
+
+3. Install KiMONo in R and load the package 
+
+```{r , eval = FALSE }
+install.packages("yourpath/kimono/", repos = NULL, type = "source")
+library(kimono)
+```
+
+
+## Installing dependencies CentOS
+### oem
+ CentOS needs a different version of RcppArmadillo(https://www.gitmemory.com/RcppCore)  
+```{r , eval = FALSE }
+ install.packages("RcppArmadillo", repos="https://rcppcore.github.io/drat")
+```
+
+
+
