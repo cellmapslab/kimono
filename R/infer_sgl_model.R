@@ -47,7 +47,7 @@ calc_lambda1.se <- function(lambdas,error_cv){
 #' @return vector of numeric groups
 parse_prior_groups <- function(names, sep="\\___"){
   # names <- c("methylation___cg0123123","rppa___MTOR")
-  # infer_prior_groups(names)
+  # parse_prior_groups(names)
   as.numeric( as.factor( do.call( rbind, strsplit( names , split = sep ))[,1]))
 }
 
