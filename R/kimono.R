@@ -257,6 +257,7 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
 kimono <- function(input_data, prior_network, min_features = 2, sel_iterations = 0 , core = 1, specific_layer = NULL, DEBUG = FALSE, scdata=FALSE,  ...){
 
 
+
   is_prior_missing <- length(names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]) != 0
 
 
@@ -275,7 +276,6 @@ kimono <- function(input_data, prior_network, min_features = 2, sel_iterations =
       colnames(tmp) <- c('A','B','layer_A','layer_B')
 
       layer_of_interest <- unique(tmp$layer_B)
-      cat(' starting ')
       prior_network_new <- create_prior_network(tmp)
       tmp <- infer_network(input_data, prior_network_new,  min_features , sel_iterations , core, specific_layer = layer_of_interest, prior_missing = FALSE )
       cat('DONE')

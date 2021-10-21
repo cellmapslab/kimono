@@ -32,7 +32,7 @@ Graph inference from multimodal biological data sets of different measurement te
 
 
 
-# Example Data
+# Example
 ***
 ## Libraries
 ```{r, warning = FALSE,  message=FALSE}
@@ -54,8 +54,9 @@ library(cowplot)
 library(DT)
 
 ```
+
 ## Mulit-modal data
-### Loading
+### Loading 
 In this example we look at fictional transcriptomic, proteomic and phenotypic data.
 
 * Rows represent samples
@@ -224,13 +225,17 @@ cat('Number of Edges: ',nedges)
 
 
 ## Filter network 
+
 Often we are only interested in models which perform well and have large effect sizes.
 ```{r, warning = FALSE}
 network <- network %>% 
   filter(value > 0.001 | value < -0.001 ) %>% # filter low effects
   filter(r_squared > 0.001)  %>%  # filter low performing models
   filter(predictor != '(Intercept)') # filter all intercepts (should be close to 0 due to normalization step)
+```
 
+New network properties
+```{r, warning = FALSE}
 nnodes <- c(network$target, network$predictor) %>% unique %>% length
 nedges <- dim(network)[1]
 
@@ -238,10 +243,9 @@ cat('Number of Nodes: ',nnodes)
 cat('Number of Edges: ',nedges)
 ```
 
-
-## Statistics
-
+Generate igraph for easier network analysis
 ```{r, warning = FALSE}
+#generate igraph
   ig_network <- network
     # often genes and proteins share names 
     # igraph requiers a unique ID
@@ -257,7 +261,7 @@ cat('Number of Edges: ',nedges)
   ig <- graph_from_data_frame(ig_network, vertices=nodes, directed = TRUE)
 ```
 
-### Visualize
+Visualize network.
 ```{r, warning = FALSE}
 vertex <- do.call(rbind,strsplit(V(ig)$name,split = '___'))
 l <- layout_with_kk(ig)
@@ -277,17 +281,16 @@ plot(ig,
      
 ```
 
-### Statistics
-#### General
+## General
 ```{r, warning = FALSE}
 cat('Density: ', ecount(ig)/(vcount(ig)*(vcount(ig)-1)), '\n' )
 cat('Reciprocity: ', reciprocity(ig) , '\n' )
 cat('Transitivity: ', transitivity(as.undirected(ig, mode="collapse")) , '\n' )
-
 ```
-#### Node degree & distribution
-```{r, warning = FALSE}
 
+
+## Node degree and distribution
+```{r, warning = FALSE}
 deg <- degree(ig, mode="all")
 cat('Average node degree: ', mean(deg), '\n' )
 
@@ -296,12 +299,12 @@ hist(deg, breaks=1:vcount(ig)-1, main="Histogram of node degree")
 deg.dist <- degree_distribution(ig, cumulative=T, mode="all")
 
 plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.2, col="orange", 
-
       xlab="Degree", ylab="Cumulative Frequency")
-
 ```
-#### Hubs and authorities
-> Hubs were expected to contain catalogs with a large number of outgoing links; 
+
+## Hubs and authorities
+
+Hubs were expected to contain catalogs with a large number of outgoing links....
 
 ```{r, warning = FALSE}
 
@@ -326,7 +329,7 @@ plot(ig,
  
 ```
 
-> while authorities would get many incoming links from hubs
+...while authorities would get many incoming links from hubs
 
 ```{r, warning = FALSE}
 as <- authority_score(ig, weights=NA)$vector
@@ -389,12 +392,17 @@ library(kimono)
 ```
 
 
-## Installing dependencies CentOS
+## Dependencies CentOS
 ### oem
  CentOS needs a different version of RcppArmadillo(https://www.gitmemory.com/RcppCore)  
 ```{r , eval = FALSE }
  install.packages("RcppArmadillo", repos="https://rcppcore.github.io/drat")
 ```
 
+# Session
+***
+```{r , eval = FALSE }
+ sessionInfo()
+```
 
 
