@@ -1,6 +1,8 @@
 # KiMONo 
 
-Knowledge guided multi-level network inference
+Knowledge guided multi-level network inference.
+
+Tutorial can be found [https://cellmapslab.github.io/kimono/](https://cellmapslab.github.io/kimono/) 
 
 ## About
 KiMONo is a network inference tool for multi-omics datasets. 
