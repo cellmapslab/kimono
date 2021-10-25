@@ -113,33 +113,22 @@ gene_gene <- fread("data/mapping_expr.csv")
 gene_gene %>% head
 gene_proteome <- fread("data/mapping_expr_prot.csv")
 gene_proteome %>% head
+
 ```
 
 > Each row represents a pair of features which is **known** to be related.
 
-
-### Preprocessing
-#### Prior map
-We have to add more layer information in order to let KiMONo know which mapping belongs to which features
-```{r, warning = FALSE}
-transcriptome_map <- load_mapping(gene_gene, layers = c('gene','gene')) #mapping between transcriptomic features
-proteome_map <- load_mapping(gene_proteome, layers = c('gene','protein'))#mapping between transcriptome and phenome
-
-
-prior_map <- rbind(transcriptome_map,proteome_map) ## combine mappings
-```
-
-### Final
 KiMONo uses the **igraph package** to efficiently incorporate the prior information.
 ```{r, warning = FALSE}
-prior_network <- create_prior_network(prior_map) ## prior network
+prior_network <- create_prior_network(rbind(gene_proteome,gene_gene) ) ## prior network
 ```
 
 #### Plotting prior network
 ```{r, warning = FALSE}
 vertex <- do.call(rbind,strsplit(V(prior_network)$name,split = '___'))
 
-prior_network %>% plot(edge.curved=1,
+prior_network %>% plot(edge.curved=0,
+                       main = 'Prior Network',
      vertex.color = c("steel blue", "orange")[vertex[,1] %>% as.factor %>% as.numeric],
      vertex.frame.color="white",
      vertex.label = vertex[,2], 
