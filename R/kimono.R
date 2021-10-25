@@ -128,6 +128,22 @@ is_valid <- function( x, min_features  ){
   TRUE
 }
 
+
+#' Progressbar function
+#'
+#' @param iterations - node_iterator length
+#' @return results as dataframe
+combine_results <- function(iterations){
+  pb <- txtProgressBar(min = 1, max = iterator - 1, style = 3)
+  count <- 0
+  function(...) {
+    count <<- count + length(list(...)) - 1
+    setTxtProgressBar(pb, count)
+    flush.console()
+    rbind(...) # this can feed into .combine option of foreach
+  }
+}
+
 #' Infers a model for each node in the main layer
 #'
 #' @param input_list - list of omics data. First list element will be used as predictor
@@ -159,7 +175,6 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
   }
   node_names <- node_names[prior_filter]
 
-
   #check if we only infer a specific layer
   if(!is.null(specific_layer)){
     node_names <- V(prior_network)$name[V(prior_network)$layer %in% specific_layer]
@@ -174,7 +189,7 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
   #TODO: check if number of features are too many for inference
   cl <- parallel::makeCluster(core)
   doParallel::registerDoParallel(cl)
-  result <- foreach(node_name = node_names, .combine = 'rbind', .packages = 'kimono')  %dopar% {
+  result <- foreach(node_name = node_names, .combine = combine_results(iterations), .packages = 'kimono')  %dopar% {
 
     library(igraph)
     library(data.table)

@@ -24,3 +24,4 @@ calc_frobenius_norm <- function(x){
   m    <- cor(as.matrix(x))
   sqrt( sum( m[upper.tri(m)]^2) ) / sqrt( (nrow(m)^2 - nrow(m)) /2 )
 }
+
