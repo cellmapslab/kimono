@@ -134,7 +134,7 @@ is_valid <- function( x, min_features  ){
 #' @param iterations - node_iterator length
 #' @return results as dataframe
 combine_results <- function(iterations){
-  pb <- txtProgressBar(min = 1, max = iterator - 1, style = 3)
+  pb <- txtProgressBar(min = 1, max = iterations - 1, style = 3)
   count <- 0
   function(...) {
     count <<- count + length(list(...)) - 1
