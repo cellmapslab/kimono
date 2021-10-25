@@ -181,7 +181,7 @@ train_kimono_sgl  <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE
   # estimate best lambda and identify underpowered features
   cv_result   <- calc_cv_sgl(y, x , seed_cv = seed_cv)
 
-  if(length(cv_result)==0) return(c()) #exit function hyere if all features got excluded
+  if(length(cv_result)==0) return(c()) #exit function here if all features got excluded
 
   # parse cv results
   feature_set <- cv_result$features

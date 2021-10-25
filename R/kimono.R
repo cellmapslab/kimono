@@ -10,7 +10,7 @@
 #' @param DEBUG - turn debug mode on
 #' @param scdata - if it is sc data
 #' @return a network in form of an edge table
-infer_network <- function(input_data, prior_network,  min_features = 2, sel_iterations = 0, core = 1, specific_layer = NULL, prior_missing, DEBUG = FALSE, scdata=FALSE, ...) {
+infer_network <- function(input_data, prior_network,  min_features = 2, sel_iterations = 0, core = 1, specific_layer = NULL, prior_missing = TRUE, DEBUG = FALSE, scdata=FALSE, ...) {
 
   #get all features within the prior network
   node_names <- V(prior_network)$name
@@ -52,8 +52,8 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
   #TODO: check if number of features are too many for inference
   cl <- makeCluster(core)
   registerDoSNOW(cl)
-  result <- foreach(node_name = node_names, .combine = 'rbind', .packages = 'kimono', .options.snow=opts)  %dopar% {
-
+  #result <- foreach(node_name = node_names, .combine = 'rbind', .packages = 'kimono', .options.snow=opts)  %dopar% {
+  result <- foreach(node_name = node_names, .combine = 'rbind') %do% {
     #library(igraph)
     #library(data.table)
     #library(dplyr)
@@ -83,7 +83,6 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
     #if not enough features stop here
     if(!is_valid(var_list$x,min_features))
       return()
-
 
     #run model in case the model bugs out catch it
     possible_error <- tryCatch(
@@ -156,12 +155,13 @@ kimono <- function(input_data, prior_network, min_features = 2, sel_iterations =
   result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = is_prior_missing, DEBUG, scdata )
 
   cat('\n')
-
+  cat('test1')
   if( nrow(result) == 0){
     warning('KiMONo was not able to infer any associations')
   }else{
-
-    if(is_prior_missing){
+    if(FALSE){
+      cat('test')
+    #if(is_prior_missing){
 
 
       layer_of_interest <- unique(tmp$layer_B)
