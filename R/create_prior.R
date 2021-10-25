@@ -1,6 +1,6 @@
 #' loading mapping files
 #'
-#' @param df
+#' @param df data frame or mapping file
 #' @param layers - default NA, if no colnames please specify your layer names here
 #' @return data frame containing all mappings
 load_mapping <- function(df, layers=NA){
@@ -15,7 +15,7 @@ load_mapping <- function(df, layers=NA){
 
 #' creating a prior network on basis of the prior_map
 #'
-#' @param prior_map
+#' @param prior_map data frame - edge list -wir column names  'A','B','layer_A','layer_B'
 #' @return igraph network
 create_prior_network <- function(prior_map) {
 

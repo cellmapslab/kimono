@@ -5,26 +5,31 @@
 \title{Run Kimono - Knowledge-guIded Multi-Omic Netowrk inference}
 \usage{
 kimono(
-  input_list,
-  mapping_list,
-  metainfo,
-  main_layer = 1,
+  input_data,
+  prior_network,
   min_features = 2,
   sel_iterations = 0,
   core = 1,
+  specific_layer = NULL,
+  DEBUG = FALSE,
+  scdata = FALSE,
   ...
 )
 }
 \arguments{
-\item{input_list}{- list of omics data. First list element will be used as predictor}
+\item{prior_network}{- igraph with prior information}
 
-\item{mapping_list}{- list of mappings between each data type one}
-
-\item{main_layer}{- which input data set represents the main layer (default = 1)}
-
-\item{min_features}{- autoexclude models with less than 2 features (default = 2)}
+\item{min_features}{- autoexclude models with less than 2 features (defaul}
 
 \item{core}{- if core != 1 kimono will perform an parallell computation}
+
+\item{specific_layer}{- specify layer}
+
+\item{DEBUG}{- only run on subset}
+
+\item{scdata}{- if single cell data}
+
+\item{input_list}{- list of omics data. First list element will be used as predictor}
 }
 \value{
 a network in form of an edge table

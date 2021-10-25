@@ -1,7 +1,7 @@
 
-#' Calculate tau based on frobenius norm
-#'
-#' @parameter x matrix/dataframe. must have at least rows & cols > 2
+#' @rdname kimono  Calculate tau based on frobenius norm
+#' @keywords internal
+#' @param x matrix/dataframe. must have at least rows & cols > 2
 #' @return Frobenius norm of x
 calc_tau <- function(x){
   # x <- matrix(1:20,5,4)
@@ -10,10 +10,10 @@ calc_tau <- function(x){
   10^(-fr_norm)
 }
 
-#' Calculate alpha based on frobenius norm and group information
-#'
-#' @parameter x matrix/dataframe. must have at least rows & cols > 2
-#' @parameter groups, vector of group numbers
+#' @rdname kimono  Calculate alpha based on frobenius norm and group information
+#' @keywords internal
+#' @param x matrix/dataframe. must have at least rows & cols > 2
+#' @param groups, vector of group numbers
 #' @return Frobenius norm of x
 calc_alpha <- function(x, group){
   # x <- matrix(1:20,5,4)
@@ -29,10 +29,10 @@ calc_alpha <- function(x, group){
 
 }
 
-#' Calculate lambda1.se model for crossvalidation
-#'
-#' @parameter lambdas vector of lambdas
-#' @parameter cv_result, matrix with nrow == folds and ncol ==  length(lamdas)
+#' @rdname kimono  Calculate lambda1.se model for crossvalidation
+#' @keywords internal
+#' @param lambdas vector of lambdas
+#' @param cv_result, matrix with nrow == folds and ncol ==  length(lamdas)
 #' @return lambda1.se
 calc_lambda1.se <- function(lambdas,error_cv){
 
@@ -41,9 +41,9 @@ calc_lambda1.se <- function(lambdas,error_cv){
   lambdas[ min(which(cv <= (min(cv) + std) )) ]
 }
 
-#' Extracts groups numbers
-#'
-#' @parameter col names vector like
+#' @rdname kimono  Extracts groups numbers
+#' @keywords internal
+#' @param col names vector like
 #' @return vector of numeric groups
 parse_prior_groups <- function(names, sep="\\___"){
   # names <- c("methylation___cg0123123","rppa___MTOR")
@@ -51,26 +51,27 @@ parse_prior_groups <- function(names, sep="\\___"){
   as.numeric( as.factor( do.call( rbind, strsplit( names , split = sep ))[,1]))
 }
 
-#' detects non informative features
-#'
-#' @parameter matrix x
+#' @rdname kimono  detects non informative features
+#' @keywords internal
+#' @param matrix x
 #' @return vector of bool
 #' @export
 is_underpowered <- function(x){
   apply( x , 2, var) == 0
 }
 
-#' detects non informative features
-#'
-#' @parameter Y_hat predicted matrix with one y_hat per column
+#' @rdname kimono  detects non informative features
+#' @keywords internal
+#' @param Y_hat predicted matrix with one y_hat per column
 #' @return vector of mse
 calc_cv_error <- function(Y_hat,y){
   apply( Y_hat , 2, calc_mse, y )
 }
 
-#' name parsing
-#'
-#' @parameter string
+#' @rdname kimono name parsing
+#' @keywords internal
+#' @param string input name
+#' @param sep seperator
 #' @return vector of mse
 parsing_name <- function(string,sep="___"){
 
@@ -84,14 +85,14 @@ parsing_name <- function(string,sep="___"){
   result
 }
 
-#' Calculate crossvalidation to estimate lambda1.se & identify potential underpowered features
-#'
-#' @parameter y data.table - feature to predict
-#' @parameter X data.table - input features with prior names attached to features
-#' @parameter model - input features with prior names attached to features
-#' @parameter intercept boolean
-#' @parameter seed_cv int - remove randomness for crossvalidation
-#' @parameter folds_cv int - defining the amount of folds
+#' @rdname kimono  Calculate crossvalidation to estimate lambda1.se & identify potential underpowered features
+#' @keywords internal
+#' @param y data.table - feature to predict
+#' @param X data.table - input features with prior names attached to features
+#' @param model - input features with prior names attached to features
+#' @param intercept boolean
+#' @param seed_cv int - remove randomness for crossvalidation
+#' @param folds_cv int - defining the amount of folds
 #' @return list containing lambda1.se and feature names excluding underpowered ones
 calc_cv_sgl <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE, seed_cv = 1234, folds_cv = 5){
 
@@ -163,13 +164,14 @@ calc_cv_sgl <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE, seed
        "features" = features )
 }
 
-#' Calculate crossvalidation to estimate lambda1.se & identify potential underpowered features
-#'
-#' @parameter y data.table - feature to predict
-#' @parameter X data.table - input features with prior names attached to features
-#' @parameter model string - which model to train. currently only sparse group lasso tested
-#' @parameter intercept - intercept only model
-#' @parameter seed - seed of model
+#' @rdname kimono  Calculate crossvalidation to estimate lambda1.se & identify potential underpowered features
+#' @keywords internal
+#' @param y data.table - feature to predict
+#' @param X data.table - input features with prior names attached to features
+#' @param model string - which model to train. currently only sparse group lasso tested
+#' @param intercept - intercept only model
+#' @param seed - seed of model
+#' @param ... - forward all other parameters
 #' @return edge list for a given input y and x
 train_kimono_sgl  <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE, seed_cv = 1234, ...){
 
@@ -234,8 +236,8 @@ train_kimono_sgl  <- function(y, x, model = "sparse.grp.lasso", intercept = TRUE
 }
 
 
-#' Stability selection and summary of multiple runs
-#'
+#' @rdname kimono Stability selection and summary of multiple runs
+#' @keywords internal
 #' @param y data.table - feature to predict
 #' @param X data.table - input features with prior names attached to features
 #' @param nseeds - specifies how many iterations to run
