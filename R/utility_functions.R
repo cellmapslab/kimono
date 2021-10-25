@@ -30,7 +30,7 @@ calc_frobenius_norm <- function(x){
 #' @param node_name fetch this node from data
 #' @param prior_network prior network with more node information
 #' @param input_data input data
-#' @param prior_missing if prior is missing
+#' @param prior_missing if prior is missing which?
 #' @return X sample x feature matrix
 fetch_var <- function(node_name , prior_network, input_data, prior_missing){
 
@@ -61,14 +61,13 @@ fetch_var <- function(node_name , prior_network, input_data, prior_missing){
 
   ##check if prior is missing for whole layer
   features_prior_missing <- c()
-  if(prior_missing){
-    layer_missing <- names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
-    if(length(layer_missing)>0){
-      for (layer in layer_missing) {
-        features_prior_missing <- c(colnames(input_data[[layer]]),features_prior_missing)
-      }
+
+  if(length(prior_missing)>0){
+    for (layer in prior_missing) {
+      features_prior_missing <- c(colnames(input_data[[layer]]),features_prior_missing)
     }
   }
+
 
   features <- c(unique(features$name),features_prior_missing)
 

@@ -9,7 +9,7 @@
 #' @param prior_missing - is prior missing
 #' @param scdata - if it is sc data
 #' @return a network in form of an edge table
-infer_network <- function(input_data, prior_network,  min_features = 2, sel_iterations = 0, core = 1, specific_layer = NULL, prior_missing = TRUE, scdata=FALSE, ...) {
+infer_network <- function(input_data, prior_network,  min_features = 2, sel_iterations = 0, core = 1, specific_layer = NULL, prior_missing, scdata=FALSE, ...) {
 
   #get all features within the prior network
   node_names <- V(prior_network)$name
@@ -139,20 +139,19 @@ kimono <- function(input_data, prior_network, min_features = 2, sel_iterations =
     }
   }
 
-  layer_of_interests <- names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
-  is_prior_missing <- length(layer_of_interests) != 0
+  layer_prior_missing <- names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
 
   cat('\n')
-  cat('2) inference for layers ',names(input_data)[(names(input_data) %in% unique(V(prior_network)$layer))],'\n')
-  result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = is_prior_missing, scdata )
+  cat('2) inference:\n for layers ',names(input_data)[(names(input_data) %in% unique(V(prior_network)$layer))],'\n')
+  result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = layer_prior_missing, scdata )
 
   cat('\n')
   if( nrow(result) == 0){
     warning('KiMONo was not able to infer any associations')
   }else{
-    if(is_prior_missing){
+    if(length(layer_prior_missing) != 0 ){
 
-      for (layer_of_interest in layer_of_interests) {
+      for (layer_of_interest in layer_prior_missing) {
 
         idx_row <- (result$predictor != '(Intercept)' | result[,3] != 0 ) &
                     result$predictor_layer %in% names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
@@ -166,8 +165,8 @@ kimono <- function(input_data, prior_network, min_features = 2, sel_iterations =
 
         prior_network_new <- create_prior_network(tmp)
 
-        cat('\n3) inference for ', layer_of_interest,'\n')
-        tmp <- infer_network(input_data, prior_network_new,  min_features , sel_iterations , core, specific_layer = layer_of_interest, prior_missing = FALSE )
+        cat('\n for ', layer_of_interest,'\n')
+        tmp <- infer_network(input_data, prior_network_new,  min_features , sel_iterations , core, specific_layer = layer_of_interest, prior_missing = layer_prior_missing )
 
         result <- rbind(result,tmp)
       }
