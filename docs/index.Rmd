@@ -22,7 +22,7 @@ output:
 
 <br><br>
 
-> This is a tutorial for multi-modal graph inference and analysis using the KiMONo framework ([Ogris et. al, 2021](https://www.nature.com/articles/s41598-021-85544-4)) on simluated transcriptomic, proteomic and phenotypic data. 
+> This is a tutorial for multi-modal graph inference and analysis using the KiMONo framework on fictional data. <br> [Ogris et. al, 2021](https://www.nature.com/articles/s41598-021-85544-4)
 
 
 <center>![Figure 1](intro.png){width='80%'}</center>
@@ -32,19 +32,32 @@ Graph inference from multimodal biological data sets of different measurement te
 
 
 
-# Data
+# Example
 ***
-
+## Libraries
 ```{r, warning = FALSE,  message=FALSE}
-library(kimono) 
+library(kimono) # framework
+
+#Dependencies
+library(igraph) # network structures and statistics
+library(data.table) # replacing data frames
+library(oem)  # SGL implementation
+library(foreach) # Paralellization
+library(doParallel) # multi-core support
+library(dplyr)  
+library(tidyverse)
+  
 
 #Visualization
 library(ggplot2)
 library(cowplot) 
 library(DT)
+
 ```
 
 ## Mulit-modal data
+
+In this example we look at fictional transcriptomic, proteomic and phenotypic data.
 
 * Rows represent samples
 * Columns represent features
@@ -60,44 +73,69 @@ proteome <- fread("data/proteome.csv")
 head(proteome)
 ```
 
+### Preprocessing
+#### Matched samples
+KiMONo relies on the fact that we feed it with matched samples. Meaning each row in each data type must represent the same sample.
 ```{r, warning = FALSE}
-# KiMONo relies on the fact that we feed it with matched samples. Meaning each row in each data type must represent the same sample.
-# check if samples match
 phenotype <- phenotype[match(transcriptome$sample, phenotype$sample),]
 proteome <- proteome[match(transcriptome$sample, proteome$sample),]
+```
 
-# Dummy coding
-# Character based variables must be either dummy coded or excluded
+#### Dummy coding
+```{r, warning = FALSE}
+phenotype$z %>% head
+```
+
+Character based variables must be either dummy coded or excluded
+```{r, warning = FALSE}
 phenotype$z <- phenotype$z %>% as.factor %>% as.numeric
+phenotype$z %>% head
+```
 
-#finalize
-input_layers <- list(
-  'gene' = transcriptome[,-"sample"], 
+### Final
+```{r, warning = FALSE}
+input_data <- list(
+  'gene' = transcriptome[,-"sample"],
   'protein' = proteome[,-"sample"],
   'phenotype' = phenotype[,-"sample"]
 )
 
-rm(transcriptome,phenotype,proteome) #free memory 
-
-input_layers %>% str
+#it is recommended to remove the original data to free some memory
+rm(transcriptome,phenotype,proteome)
 ```
-
-> Note: list element lables must match prior label
 
 ## Prior data
 ***
-KiMONo convert a simple csv based files to a prior network which suits us as an inference blueprint. Each row represents a pair of features which is **known** to be related. KiMONo uses the **igraph package** to efficiently incorporate the prior information and represent it as a network.
+KiMONo convert a simple csv based files to a prior network which suits us as an inference blueprint. 
 
 ```{r, warning = FALSE}
 gene_gene <- fread("data/mapping_expr.csv")
 gene_gene %>% head
 gene_proteome <- fread("data/mapping_expr_prot.csv")
 gene_proteome %>% head
-
-prior_network <- create_prior_network(rbind(gene_gene,gene_proteome)) ## prior network
-prior_network
 ```
 
+> Each row represents a pair of features which is **known** to be related.
+
+
+### Preprocessing
+#### Prior map
+We have to add more layer information in order to let KiMONo know which mapping belongs to which features
+```{r, warning = FALSE}
+transcriptome_map <- load_mapping(gene_gene, layers = c('gene','gene')) #mapping between transcriptomic features
+proteome_map <- load_mapping(gene_proteome, layers = c('gene','protein'))#mapping between transcriptome and phenome
+
+
+prior_map <- rbind(transcriptome_map,proteome_map) ## combine mappings
+```
+
+### Final
+KiMONo uses the **igraph package** to efficiently incorporate the prior information.
+```{r, warning = FALSE}
+prior_network <- create_prior_network(prior_map) ## prior network
+```
+
+#### Plotting prior network
 ```{r, warning = FALSE}
 vertex <- do.call(rbind,strsplit(V(prior_network)$name,split = '___'))
 
@@ -136,7 +174,7 @@ Sparse Group Lasso penalty:
 
 ## Call KiMONo
 ```{r, warning = FALSE}
-network <- kimono(input_layers, prior_network ,core = 2)
+network <- kimono(input_data, prior_network ,core = 2)
 ```
 
 ## Output
