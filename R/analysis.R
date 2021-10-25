@@ -41,7 +41,7 @@ to_igraph <- function(network, directed = TRUE){
 
 
   #generate igraph
-  ig_kimono <- graph_from_data_frame(tmp_network[,c("target","predictor","value")], vertices=nodes, directed = TRUE)
+  ig_kimono <- graph_from_data_frame(tmp_network[,c("predictor","target","value")], vertices=nodes, directed = TRUE)
 
   if(!directed){
     ig_kimono <- as.undirected(ig_kimono,mode = c("mutual") )

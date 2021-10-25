@@ -271,9 +271,9 @@ stability_selection <- function(y, x, nseeds){
 
     # For some seeds groupsparse does not return a model these have to be skipped
     if(is.null(fit)){
-      df_mse[,i] <- rep(NA,nseeds)
-      df_r_squared[,i] <- rep(NA,nseeds)
-      df_values[,i] <- rep(NA,nseeds)
+      df_mse[i] <- NA
+      df_r_squared[i] <- NA
+      df_values[,i] <- NA
 
       next
     }
@@ -284,7 +284,17 @@ stability_selection <- function(y, x, nseeds){
     df_mse[i] <-  fit$mse[1]
     df_r_squared[i] <-  fit$r_squared[1]
     df_values[,i] <-  fit$value
+    #reset fit
+    fit <- NULL
   }
+
+  #calc
+
+  #return c() if all NA
+  if(sum(rowSums(!is.na(df_values))) == 0) return(c())
+
+  #return c() for intercept only model
+  if(sum(rowMeans(df_values[idx$names != "(Intercept)",], na.rm = T) != 0) == 0 ) return(c())
 
   # Dataframe with columns   predictor
   # The value is the frequency of a feature being included in the different seed models
@@ -299,7 +309,7 @@ stability_selection <- function(y, x, nseeds){
     'sd_rsq' = sd(df_r_squared, na.rm = T),
     'mean_mse' = mean(df_mse, na.rm = T),
     'sd_mse' = sd(df_mse, na.rm = T),
-    'sel_freq' = (nseeds-apply(df_values,1,function(x){sum(is.na(x))}))/nseeds,
+    'sel_freq' = rowSums(df_values != 0 & !is.na(df_values)) / nseeds,
     'predictor_layer' =  idx$predictor_layer
   )
 }

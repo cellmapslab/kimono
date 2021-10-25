@@ -7,10 +7,9 @@
 #' @param core - to run network inference in parallel
 #' @param specific_layer - run only on one specific layer
 #' @param prior_missing - is prior missing
-#' @param DEBUG - turn debug mode on
 #' @param scdata - if it is sc data
 #' @return a network in form of an edge table
-infer_network <- function(input_data, prior_network,  min_features = 2, sel_iterations = 0, core = 1, specific_layer = NULL, prior_missing = TRUE, DEBUG = FALSE, scdata=FALSE, ...) {
+infer_network <- function(input_data, prior_network,  min_features = 2, sel_iterations = 0, core = 1, specific_layer = NULL, prior_missing = TRUE, scdata=FALSE, ...) {
 
   #get all features within the prior network
   node_names <- V(prior_network)$name
@@ -38,10 +37,6 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
     node_names <- V(prior_network)$name[V(prior_network)$layer %in% specific_layer]
   }
 
-  if(DEBUG){
-    node_names <- node_names[1:100]
-  }
-
   iterations <- length(node_names)
 
   cat( as.character(Sys.time()), 'starting inference of ', iterations, ' models\n')
@@ -52,16 +47,11 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
   #TODO: check if number of features are too many for inference
   cl <- makeCluster(core)
   registerDoSNOW(cl)
-  #result <- foreach(node_name = node_names, .combine = 'rbind', .packages = 'kimono', .options.snow=opts)  %dopar% {
-  result <- foreach(node_name = node_names, .combine = 'rbind') %do% {
-    #library(igraph)
-    #library(data.table)
-    #library(dplyr)
-    #library(oem)
-    #library(foreach)
-    #library(doParallel)
-    #library(tidyverse)
+  result <- foreach(node_name = node_names, .combine = 'rbind', .packages = 'kimono', .options.snow=opts)  %dopar% {
+  #result <- foreach(node_name = node_names, .combine = 'rbind') %do% {
 
+    subnet <- NULL
+    var_list <- NULL
 
     # can't pass on an igraph node in foreach therefore we have to reselect it here
     #get y and x for a given node
@@ -107,6 +97,7 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
 
     t <- data.table('target' = parsing_name(node_name)$id , subnet , 'target_layer' = parsing_name(node_name)$prefix)
 
+
     return(t)
   }
   parallel::stopCluster(cl)
@@ -134,7 +125,7 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
 #' @return a network in form of an edge table
 #' @export
 
-kimono <- function(input_data, prior_network, min_features = 2, sel_iterations = 0 , core = 1, specific_layer = NULL, DEBUG = FALSE, scdata=FALSE,  ...){
+kimono <- function(input_data, prior_network, min_features = 2, sel_iterations = 0 , core = 1, specific_layer = NULL, scdata=FALSE,  ...){
 
   time <- Sys.time()
   #cat('run started at : ' , as.character(Sys.time()),'\n')
@@ -148,23 +139,18 @@ kimono <- function(input_data, prior_network, min_features = 2, sel_iterations =
     }
   }
 
-  is_prior_missing <- length(names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]) != 0
+  layer_of_interests <- names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
+  is_prior_missing <- length(layer_of_interests) != 0
 
   cat('\n')
   cat('2) inference for layers ',names(input_data)[(names(input_data) %in% unique(V(prior_network)$layer))],'\n')
-  result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = is_prior_missing, DEBUG, scdata )
+  result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = is_prior_missing, scdata )
 
   cat('\n')
-  cat('test1')
   if( nrow(result) == 0){
     warning('KiMONo was not able to infer any associations')
   }else{
-    if(FALSE){
-      cat('test')
-    #if(is_prior_missing){
-
-
-      layer_of_interest <- unique(tmp$layer_B)
+    if(is_prior_missing){
 
       for (layer_of_interest in layer_of_interests) {
 

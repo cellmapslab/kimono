@@ -1,6 +1,6 @@
 Package: kimono
 Title: Knowledge-guIded Multi-Omic NetOwrk inference
-Version: 2.0.0.0001
+Version: 2.0.1.0001
 Authors@R: 
     person(given = "Christoph",
            family = "Ogris",
