@@ -44,12 +44,15 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
 
   iterations <- length(node_names)
 
-  cat('Training ', iterations, ' models \n')
+  cat( as.character(Sys.time()), 'starting inference of ', iterations, ' models\n')
+  pb <- txtProgressBar(0, iterations, style = 3)
+  progress <- function(n) setTxtProgressBar(pb, n)
+  opts <- list(progress=progress)
 
   #TODO: check if number of features are too many for inference
-  cl <- parallel::makeCluster(core)
-  doParallel::registerDoParallel(cl)
-  result <- foreach(node_name = node_names, .combine = combine_results(iterations), .packages = 'kimono')  %dopar% {
+  cl <- makeCluster(core)
+  registerDoSNOW(cl)
+  result <- foreach(node_name = node_names, .combine = 'rbind', .packages = 'kimono', .options.snow=opts)  %dopar% {
 
     #library(igraph)
     #library(data.table)
@@ -136,12 +139,9 @@ kimono <- function(input_data, prior_network, min_features = 2, sel_iterations =
 
   time <- Sys.time()
   #cat('run started at : ' , as.character(Sys.time()),'\n')
-  cat('1) input data\nlayer    | samples   | features   | prior features\n')
+  cat('1) input data:\nlayer - samples - features - prior features\n')
   for (layers in names(input_data)) {
-    #cat(layers,': \n')
-    #cat(' - samples  : ', dim(input_data[[layers]])[1], '\n' )
-    #cat(' - features : ', dim(input_data[[layers]])[2] ,'\n')
-    cat(layers,' | ',dim(input_data[[layers]])[1],' | ', dim(input_data[[layers]])[2] ,' | ')
+    cat(layers,' - ',dim(input_data[[layers]])[1],' - ', dim(input_data[[layers]])[2] ,' - ' )
     if( any(layers %in% unique(V(prior_network)$layer)) ){
       cat(sum(V(prior_network)$layer %in% layers), '\n')
     }else{
@@ -185,7 +185,7 @@ kimono <- function(input_data, prior_network, min_features = 2, sel_iterations =
   }
 
   cat('\n')
-  cat('Done' , Sys.time() - time)
+  cat('Done' , round((Sys.time() - time)/60,2) , 'min')
 
   result
 }

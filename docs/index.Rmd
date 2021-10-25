@@ -43,7 +43,7 @@ library(igraph) # network structures and statistics
 library(data.table) # replacing data frames
 library(oem)  # SGL implementation
 library(foreach) # Paralellization
-library(doParallel) # multi-core support
+library(doSNOW) # multi-core support
 library(dplyr)  
 library(tidyverse)
   
@@ -164,9 +164,12 @@ Sparse Group Lasso penalty:
 ## Call KiMONo
 ```{r, warning = FALSE}
 network <- kimono(input_data, prior_network ,core = 2)
+#plot network
+to_igraph(network) %>% plot_kimono(title='KiMONo Network (directed)')
+to_igraph(network, directed = F) %>% plot_kimono(title='KiMONo Network (undirected)')
 ```
 
-## Output
+## Result
 <br>
 Columns:
 
@@ -234,58 +237,27 @@ cat('Number of Edges: ',nedges)
 
 Generate igraph for easier network analysis
 ```{r, warning = FALSE}
-#generate igraph
-  ig_network <- network
-    # often genes and proteins share names 
-    # igraph requiers a unique ID
-    # hence its getting a bit complicated
-  ig_network$predictor <- paste0(network$predictor_layer,"___",network$predictor) 
-  ig_network$target <- paste0(network$target_layer,"___",network$target)
-  
-  lable <- unique( c( ig_network$predictor, ig_network$target ) )
-  nodes <- data.frame(id = lable, 
-                      data_layer = do.call(rbind, strsplit(lable,"___") )[,1]
-                       )
-  
-  ig <- graph_from_data_frame(ig_network, vertices=nodes, directed = TRUE)
-```
-
-Visualize network.
-```{r, warning = FALSE}
-vertex <- do.call(rbind,strsplit(V(ig)$name,split = '___'))
-l <- layout_with_kk(ig)
-plot(ig,
-     edge.curved=0,
-     vertex.color = c("steel blue",'#842F39', "orange")[vertex[,1] %>% as.factor %>% as.numeric],
-     vertex.frame.color="white",
-     vertex.label = vertex[,2], 
-     vertex.label.color='black',
-     vertex.label.cex=.7,
-     layout=l,
-     rescale=F
-     ) 
-
- legend(x=-1.5, y=-1.1, c("Genes","Phenotype","Proteins"), pch=21,
-     col="#777777", pt.bg=c("steel blue","#842F39", "orange"), pt.cex=2, cex=.8, bty="n", ncol=1)
-     
+#generate undirected igraph
+ig_network <- to_igraph(network, directed=TRUE) 
+ig_network %>% plot_kimono
 ```
 
 ## General
 ```{r, warning = FALSE}
-cat('Density: ', ecount(ig)/(vcount(ig)*(vcount(ig)-1)), '\n' )
-cat('Reciprocity: ', reciprocity(ig) , '\n' )
-cat('Transitivity: ', transitivity(as.undirected(ig, mode="collapse")) , '\n' )
+cat('Density: ', ecount(ig_network)/(vcount(ig_network)*(vcount(ig_network)-1)), '\n' )
+cat('Reciprocity: ', reciprocity(ig_network) , '\n' )
+cat('Transitivity: ', transitivity(as.undirected(ig_network, mode="collapse")) , '\n' )
 ```
 
 
 ## Node degree and distribution
 ```{r, warning = FALSE}
-deg <- degree(ig, mode="all")
+deg <- degree(ig_network, mode="all")
 cat('Average node degree: ', mean(deg), '\n' )
 
-hist(deg, breaks=1:vcount(ig)-1, main="Histogram of node degree")
+hist(deg, breaks=1:vcount(ig_network)-1, main="Histogram of node degree")
 
-deg.dist <- degree_distribution(ig, cumulative=T, mode="all")
+deg.dist <- degree_distribution(ig_network, cumulative=T, mode="all")
 
 plot( x=0:max(deg), y=1-deg.dist, pch=19, cex=1.2, col="orange", 
       xlab="Degree", ylab="Cumulative Frequency")
@@ -297,19 +269,18 @@ Hubs were expected to contain catalogs with a large number of outgoing links....
 
 ```{r, warning = FALSE}
 
-hs <- hub_score(ig, weights=NA)$vector
+hs <- hub_score(ig_network, weights=NA)$vector
+l <- layout_with_kk(ig_network)
 
 
-
-plot(ig,
+plot(ig_network,
      edge.curved=0,
      vertex.color = c("steel blue",'#842F39', "orange")[vertex[,1] %>% as.factor %>% as.numeric],
      vertex.frame.color="white",
      vertex.label = vertex[,2], 
      vertex.label.color='black',
      vertex.label.cex=.7,
-     layout=l,
-     rescale=F,
+     layout=l, 
      vertex.size=hs*20, main="Hubs"
      ) 
 
@@ -321,16 +292,15 @@ plot(ig,
 ...while authorities would get many incoming links from hubs
 
 ```{r, warning = FALSE}
-as <- authority_score(ig, weights=NA)$vector
-plot(ig,
+as <- authority_score(ig_network, weights=NA)$vector
+plot(ig_network,
      edge.curved=0,
      vertex.color = c("steel blue",'#842F39', "orange")[vertex[,1] %>% as.factor %>% as.numeric],
      vertex.frame.color="white",
      vertex.label = vertex[,2], 
      vertex.label.color='black',
      vertex.label.cex=.7,
-     layout=l,
-     rescale=F,
+     layout=l, 
      vertex.size=as*20, main="Authorities"
      ) 
 

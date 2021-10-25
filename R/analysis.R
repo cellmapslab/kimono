@@ -55,13 +55,15 @@ to_igraph <- function(network, directed = TRUE){
 #' generate igraph
 #'
 #' @param ig_kimono igraph of kimono network
+#' @param title plot title
 #' @return igraph
-plot_kimono <- function(ig_kimono){
+plot_kimono <- function(ig_kimono,title=''){
 
   layers <- V(ig_kimono)$data_layer
   color <- rainbow(length(layers), s = 0.4)
 
   plot(ig_kimono,
+       main = title,
        edge.curved=0,
        vertex.color = color[layers %>% as.factor %>% as.numeric ],
        vertex.frame.color="white",
