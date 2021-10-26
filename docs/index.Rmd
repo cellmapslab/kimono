@@ -163,7 +163,7 @@ Sparse Group Lasso penalty:
 
 ## Call KiMONo
 ```{r, warning = FALSE}
-network <- kimono(input_data, prior_network ,core = 2)
+network <- kimono(input_data, prior_network ,core = 2, infer_missing_prior = TRUE)
 #plot network
 to_igraph(network) %>% plot_kimono(title='KiMONo Network (directed)')
 to_igraph(network, directed = F) %>% plot_kimono(title='KiMONo Network (undirected)')
