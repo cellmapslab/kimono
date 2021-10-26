@@ -8,8 +8,9 @@
 #' @param specific_layer - run only on one specific layer
 #' @param prior_missing - is prior missing
 #' @param scdata - if it is sc data
+#' @param saveintermediate - saveintermediate
 #' @return a network in form of an edge table
-infer_network <- function(input_data, prior_network,  min_features = 2, sel_iterations = 0, core = 1, specific_layer = NULL, prior_missing, scdata=FALSE, ...) {
+infer_network <- function(input_data, prior_network,  min_features = 2, sel_iterations = 0, core = 1, specific_layer = NULL, prior_missing, scdata=FALSE, saveintermediate = FALSE, ...) {
 
   #get all features within the prior network
   node_names <- V(prior_network)$name
@@ -102,6 +103,9 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
   }
   parallel::stopCluster(cl)
 
+  if(saveintermediate){
+    save_kimono(result)
+  }
   return(result)
 }
 
@@ -115,17 +119,19 @@ infer_network <- function(input_data, prior_network,  min_features = 2, sel_iter
 #' @import oem
 #' @import doParallel
 #' @import igraph
-#' @param input_list - list of omics data. First list element will be used as predictor
+#' @param input_data - list of omics data. First list element will be used as predictor
 #' @param prior_network  - igraph with prior information
 #' @param min_features - autoexclude models with less than 2 features (defaul
 #' @param core - if core != 1 kimono will perform an parallell computation
 #' @param specific_layer - specify layer
 #' @param DEBUG - only run on subset
 #' @param scdata - if single cell data
+#' @param infer_missing_prior - if kimono should infer missing prior
+#' @param saveintermediate - save each intermediate result
 #' @return a network in form of an edge table
 #' @export
 
-kimono <- function(input_data, prior_network, min_features = 2, sel_iterations = 0 , core = 1, specific_layer = NULL, scdata=FALSE,  ...){
+kimono <- function(input_data, prior_network, min_features = 2, sel_iterations = 0 , core = 1, specific_layer = NULL, scdata=FALSE, infer_missing_prior = FALSE, saveintermediate = FALSE, ...){
 
   time <- Sys.time()
   #cat('run started at : ' , as.character(Sys.time()),'\n')
@@ -137,41 +143,72 @@ kimono <- function(input_data, prior_network, min_features = 2, sel_iterations =
     }else{
       cat('0\n')
     }
+
+    if(dim(input_data[[layers]])[2] > 500 & !any(layers %in% unique(V(prior_network)$layer))){
+      warning('KiMONo is not recommended to process missing priors for layers with 500+ features')
+      return(c())
+    }
   }
 
   layer_prior_missing <- names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
+  layer_prior <- names(input_data)[(names(input_data) %in% unique(V(prior_network)$layer))]
 
   cat('\n')
-  cat('2) inference:\n for layers ',names(input_data)[(names(input_data) %in% unique(V(prior_network)$layer))],'\n')
-  result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = layer_prior_missing, scdata )
+  cat('2) inference:\n for layers ',layer_prior,'\n')
+  result <- infer_network(input_data, prior_network,  min_features, sel_iterations , core, specific_layer, prior_missing = layer_prior_missing, scdata, saveintermediate )
 
   cat('\n')
-  if( nrow(result) == 0){
+  if ( nrow(result) == 0) {
     warning('KiMONo was not able to infer any associations')
-  }else{
-    if(length(layer_prior_missing) != 0 ){
+    return(c())
+  }
 
-      for (layer_of_interest in layer_prior_missing) {
+  if (length(layer_prior_missing) != 0 & infer_missing_prior) {
+    cat('\n3) missing prior \n')
+    for (layer_of_interest in layer_prior_missing) {
+      cat(layer_of_interest,'\n')
 
-        idx_row <- (result$predictor != '(Intercept)' | result[,3] != 0 ) &
-                    result$predictor_layer %in% names(input_data)[!(names(input_data) %in% unique(V(prior_network)$layer))]
+      intra_map <- c()
+      if(length(names(input_data[[layer_of_interest]])) > 1){
+        cat('within layer\n')
+        features <- names(input_data[[layer_of_interest]])
+
+        features <- features %>%
+                    combn(2)%>%
+                    t %>%
+                    data.table
+
+        prior_fully_connected <- load_mapping(features,c(layer_of_interest,layer_of_interest)) %>% create_prior_network()
+        intra_map <- infer_network(input_data, prior_fully_connected,  min_features , sel_iterations , core, specific_layer = layer_of_interest, prior_missing = layer_prior_missing, saveintermediate  )
+        cat('\n')
+
+        intra_map <- intra_map %>%
+                         filter(.[[3]] != 0 ) %>%  #filter edge effect size = 0
+                         filter(predictor != '(Intercept)') #filter intercepts and intercept only models
+
 
         idx_col <- c('target','predictor','target_layer','predictor_layer')
-
-        tmp <- filter(result,idx_row)[,..idx_col]
-        colnames(tmp) <- c('A','B','layer_A','layer_B')
-
-        #cat(layer_of_interest, '\n')
-
-        prior_network_new <- create_prior_network(tmp)
-
-        cat('\n for ', layer_of_interest,'\n')
-        tmp <- infer_network(input_data, prior_network_new,  min_features , sel_iterations , core, specific_layer = layer_of_interest, prior_missing = layer_prior_missing )
-
-        result <- rbind(result,tmp)
+        intra_map <- intra_map[,..idx_col]
+        colnames(intra_map) <- c('A','B','layer_A','layer_B')
       }
+
+      cat('overall layer\n')
+      idx_row <- (result$predictor != '(Intercept)' | result[,3] != 0 ) &
+                  result$predictor_layer %in% layer_of_interest
+
+      idx_col <- c('target','predictor','target_layer','predictor_layer')
+
+      tmp <- filter(result,idx_row)[,..idx_col]
+      colnames(tmp) <- c('A','B','layer_A','layer_B')
+
+      prior_network_new <- create_prior_network(rbind(tmp,intra_map))
+
+      tmp <- infer_network(input_data, prior_network_new,  min_features , sel_iterations , core, specific_layer = layer_of_interest, prior_missing = layer_prior_missing, saveintermediate  )
+      cat('\n')
+      result <- rbind(result,tmp)
     }
   }
+
 
   cat('\n')
   cat('Done' , round((Sys.time() - time)/60,2) , 'min')

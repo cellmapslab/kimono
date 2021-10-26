@@ -176,4 +176,13 @@ combine_results <- function(iterations){
   }
 }
 
-
+#' @rdname kimono saveintermediate results
+#' @keywords internal
+#' @param network file
+#' @return message if file saved
+save_kimono<- function(result){
+  layers <- result$target_layer %>% unique
+  file_name = c('tmp_kimono',as.character(Sys.time()),layers,'.tsv') %>% paste0(collapse="_") %>% gsub(pattern = "\ ",replacement = '_') %>% gsub(pattern = ":",replacement = '_')
+  write.table(result, file = paste(getwd(),file_name,sep="/"),quote = F, row.names = F, col.names = T)
+  cat('\n saving file', file_name,'\n')
+}
