@@ -18,5 +18,10 @@ Depends:
     foreach,
     igraph,
     doSNOW,
-    tidyverse
+    tidyverse,
+    mice,
+    impute,
+    miselect,
+    checkmate,
+    hmlasso
 RoxygenNote: 7.1.2

@@ -7,16 +7,22 @@
 kimono(
   input_data,
   prior_network,
+  imputed_data = NULL,
+  method = "sgl",
+  ADW_calculation = FALSE,
   min_features = 2,
   sel_iterations = 0,
   core = 1,
   specific_layer = NULL,
-  DEBUG = FALSE,
   scdata = FALSE,
+  infer_missing_prior = FALSE,
+  saveintermediate = FALSE,
   ...
 )
 }
 \arguments{
+\item{input_data}{- list of omics data. First list element will be used as predictor}
+
 \item{prior_network}{- igraph with prior information}
 
 \item{min_features}{- autoexclude models with less than 2 features (defaul}
@@ -25,11 +31,13 @@ kimono(
 
 \item{specific_layer}{- specify layer}
 
-\item{DEBUG}{- only run on subset}
-
 \item{scdata}{- if single cell data}
 
-\item{input_list}{- list of omics data. First list element will be used as predictor}
+\item{infer_missing_prior}{- if kimono should infer missing prior}
+
+\item{saveintermediate}{- save each intermediate result}
+
+\item{DEBUG}{- only run on subset}
 }
 \value{
 a network in form of an edge table
