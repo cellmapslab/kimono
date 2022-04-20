@@ -93,16 +93,19 @@ fetch_var <- function(node_name , prior_network, input_data, prior_missing){
 #' @param y , vector of doubles
 #' @param x , matrix features in columns and samples in rows
 #' @return x, y without na's
-preprocess_data <- function(y, x){
+preprocess_data <- function(y, x, method){
 
   y <- scale(y)
   x <- scale(x)
-
-  x <- x[which(!is.na(y)), , drop = FALSE]
-  y <- y[which(!is.na(y)), drop = FALSE]
-
-  if(!is.null( dim(x) ) )
-    x <- x[ ,!is.na(colSums(x)),drop = FALSE]
+  
+  if(method == 'sgl'){
+    x <- x[which(!is.na(y)), , drop = FALSE]
+    y <- y[which(!is.na(y)), drop = FALSE]
+    
+    if(!is.null( dim(x) ) )
+      x <- x[ ,!is.na(colSums(x)),drop = FALSE]
+  }
+  
 
   list("y"=as.data.table(y),
        "x"=as.data.table(x))
@@ -143,13 +146,15 @@ preprocess_scdata <- function(y, x){
 #' @param min_features , default 5
 #' @param x , matrix features in columns and samples in rows
 #' @return TRUE / FALSE
-is_valid <- function( x, min_features  ){
+is_valid <- function( x, min_features, method ){
 
   if( ncol(x) < min_features )
     return(FALSE)
-
-  if( sum(is.na(colSums( as.matrix(x) ))) > ncol(x)-min_features)
-    return(FALSE)
+  
+  if(method == 'sgl'){
+    if( sum(is.na(colSums( as.matrix(x) ))) > ncol(x)-min_features)
+      return(FALSE)
+  }
 
   TRUE
 }

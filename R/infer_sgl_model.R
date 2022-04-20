@@ -1,3 +1,357 @@
+#' @rdname kimono name parsing
+#'
+#' @param y data.table - feature to predict
+#' @param X data.table - input features with prior names attached to features
+#' @param model string - which model to train. currently only sparse group lasso tested
+#' @param folds_cv nr of folds for cv
+#' @param nlambdas nr of lambda paramters to be tested
+#' @param selection either "lambda.min.index" or "lambda.1se.index"
+#'
+#' @return edge list for a given input y and x
+
+train_kimono_lasso <- function(x, y, method, folds_cv = 5, seed_cv=1234, nlambdas= 50, selection= "lambda.min.index", rm_underpowered = FALSE){
+  set.seed(seed_cv)
+  
+  x <- x[which(!is.na(y)), , drop = FALSE]
+  y <- y[which(!is.na(y)), drop = FALSE]
+  
+  y <- scale(y)
+  x <- scale(as.matrix(x))
+  
+  if(ncol(x) < 3) # in case we exclude all features return empty list
+    return(c())
+  
+  if(rm_underpowered){
+    x <- rm_underpowered_feat(x, folds_cv=folds_cv)
+  }
+  
+  fold_idx <- sample(rep( 1:folds_cv, length.out = nrow(x)))
+  #cv_fit <- run_hm(x,y, nlambdas=nlambdas, fold_idx=fold_idx)
+  
+  if(method == "lasso_coco") {
+    cv_fit <- run_coco(x,y, nlambdas=nlambdas, fold_idx=fold_idx)
+  } 
+  if (method == "lasso_hm") {
+    cv_fit <- run_hm(x,y, nlambdas=nlambdas, fold_idx=fold_idx)
+  }
+  if (method == "lasso_BDcoco"){
+    #browser()
+    res_coco <- run_BDcoco(x,y,nlambdas=nlambdas)
+    cv_fit <- res_coco$cv_fit
+    x <-   res_coco$xnew
+  }
+  
+  if(method == "lasso_BDcoco"){
+    
+    beta <- cv_fit$beta.opt
+    
+    if(!any(beta != 0)){ return(c())}
+    
+    y_hat <- x%*% beta
+    
+    mse <- calc_mse(y,y_hat)
+    
+    r_squared <- calc_r_square(y,y_hat)
+    
+    covariates <- cv_fit$vnames
+    
+    value <- beta
+    
+  } else {
+    
+    beta <- cv_fit$fit$beta[,cv_fit[selection][[1]]  ]
+    if(!any(beta != 0)){ return(c())}
+    
+    y_hat <- predict(cv_fit$fit, x)[, cv_fit[selection][[1]] ]
+    
+    mse <- calc_mse(y,y_hat)
+    
+    intercept <- cv_fit$fit$a0[, cv_fit[selection][[1]] ]
+    
+    r_squared <- calc_r_square(y, y_hat )
+    
+    covariates  <- c("(Intercept)", rownames(cv_fit$fit$beta))
+    value <- c(intercept, beta)
+  }
+  
+  prefix_covariates <- parsing_name(covariates)
+  
+  tibble("predictor" = prefix_covariates$id,
+         "value" = value,
+         "r_squared" = r_squared,
+         "mse" = mse,
+         "predictor_layer" = prefix_covariates$prefix,
+  )
+}
+
+#' @rdname kimono name parsing
+#'
+#' @param x
+#' @param y
+#' @param nlambdas
+#' @param fold_idx
+#'
+#' @return
+
+run_BDcoco <- function(x,y, nlambdas){
+  
+  phenotype_cols <- grep("phenotype___", colnames(x))
+  
+  if(length(phenotype_cols) < 1) return(list())
+  
+  x <- cbind(x[,phenotype_cols, drop=FALSE], x[,-phenotype_cols, drop= FALSE])
+  
+  nr_uncorrupted <- length(phenotype_cols) + 1 # adding one for intercept
+  nr_corrupted <- dim(x)[2]-length(phenotype_cols)
+  
+  x <- cbind(rep(1,nrow(x)),x)
+  colnames(x)[1]<- "(Intercept)"
+  
+  k <- NULL
+  
+  for(i in c(10:3)){
+    if(dim(x)[1]%%i == 0 ) {
+      k <- i
+      break()
+    }
+  }
+  
+  if(is.null(k)) stop("Bug of BDCoCo: sample number needs to have a devivder between 10 and 3")
+  
+  cv_fit <- BDcocolasso::coco(Z = x, y = y, n=dim(x)[1], p=dim(x)[2], p1=nr_uncorrupted, p2=nr_corrupted,
+                              step = nlambdas, K=k,tau=NULL, etol = 1e-4, mu = 10, center.y = FALSE,
+                              noise="missing", block= TRUE, penalty= "lasso", mode = "ADMM")
+  
+  return(list(cv_fit=cv_fit, xnew= x))
+}
+
+#' @rdname kimono cocolasso runner
+#'
+#' @param x
+#' @param y
+#' @param nlambdas
+#' @param fold_idx
+#'
+#' @return
+#' @export
+#'
+#' @examples
+run_coco <-  function(x,y, nlambdas, fold_idx){
+  cv_fit <- hmlasso::cv.hmlasso(x, y,nlambda=50, seed = 1234, lambda.min.ratio=1e-1,
+                                foldid=fold_idx, direct_prediction=TRUE,
+                                positify="admm_max", weight_power = 0)
+  return(cv_fit)
+}
+
+#' @rdname kimono hmlasso runner
+#'
+#' @param x
+#' @param y
+#' @param nlambdas
+#' @param fold_idx
+#'
+#' @return
+
+run_hm <- function(x,y, nlambdas, fold_idx){
+  
+  weight_powers <- c(0.5, 1, 1.5, 2)
+  fits <- vector("list", length= length(weight_powers))
+  MSEs <- vector("numeric", length= length(weight_powers))
+  
+  for(i in seq_along(weight_powers)){
+    fits[[i]] <- hmlasso::cv.hmlasso(x, y, nlambda=nlambdas, seed = 1234, lambda.min.ratio=1e-1,
+                                     foldid=fold_idx, direct_prediction=TRUE,
+                                     positify="admm_frob", weight_power = weight_powers[i])
+  }
+  
+  y_hat <- predict(fits[[i]]$fit, x)[, fits[[i]]$lambda.min.index]
+  MSEs[i]<- calc_mse(y,y_hat)
+  
+  return(fits[[which.min(MSEs)]])
+}
+
+#' @rdname kimono Stack adaptive lasso
+#' @keywords internal
+#' @param y data.table - feature to predict
+#' @param X data.table - input features with prior names attached to features
+#' @param imputed_data - imputed data
+#' @param input_data - original input data with NAs
+#' @param ADW_calculation - if adaptive weight must be calculated
+#' @param nseeds - specifies how many iterations to run
+#' @return edge list for a given input y and x, and statistics on multiple runs
+
+salasso <- function(var_y,var_x,imputed_data,input_data,ADW_calculation,set_seed=1234){
+  #save(var_y,var_x,imputed_data,input_data,ADW_calculation,file='saenet_chechek.RData')
+  set.seed(set_seed)
+  
+  temp <- matrix()
+  for(layer in names(input_data)){
+    dat <- input_data[[layer]]
+    temp <- cbind(temp,dat)
+    temp <- temp[,-1]
+  }
+  
+  all_imputed <- list()
+  
+  for(mat in seq(length(imputed_data[[1]]))){
+    tmp <- matrix()
+    for(layer in names(imputed_data)){
+      dat <- imputed_data[[layer]][[mat]]
+      colnames(dat) <- paste0(layer,'___',colnames(dat))
+      tmp <- cbind(tmp,dat)
+    }
+    all_imputed[[mat]] <- tmp[,-1]
+  }
+  
+  comm <- colnames(temp) %in% colnames(all_imputed[[1]])
+  temp <- temp[,comm,with=FALSE]
+  
+  x <- list()
+  y <- list()
+  
+  for(dat in seq(length(all_imputed))){
+    pos_x <- which(colnames(all_imputed[[dat]]) %in% colnames(var_x))
+    x[[dat]] <- as.matrix(as.data.table(scale(all_imputed[[dat]][,pos_x])))
+    pos_y <- which(colnames(all_imputed[[dat]]) %in% colnames(var_y))
+    y[[dat]] <- as.vector(scale(all_imputed[[dat]][,pos_y]))
+  }
+  
+  pf <- rep(1, ncol(var_x))
+  adWeight <- rep(1, ncol(var_x))
+  weights <- 1 - rowMeans(is.na(temp[,colnames(temp) %in% c(colnames(x[[1]]),colnames(y[[1]])), with=FALSE]))
+  fit <- cv.saenet(x, y, pf, adWeight,weights = weights,nlambda=50,alpha=1)
+  
+  if(ADW_calculation){
+    message("calculation adaptive weights")
+    cv_coef <- coef(fit)
+    
+    js <- rep(0,ncol(var_x))
+    js <- cv_coef[-1]**2 + js
+    
+    v = log(ncol(var_x))/log(nrow(var_x) * length(all_imputed))
+    
+    gamma = ceiling(2 * v/1 - v) + 1
+    
+    ai = (abs(cv_coef[-1]) + 1 / nrow(var_x) * length(all_imputed))**(-gamma)
+    
+    fit <- cv.saenet(x, y, pf, adWeight=ai,weights = weights,nlambda=50,alpha=1)
+    
+  }
+  
+  cv_coef <- coef(fit)
+  
+  rsquares <- c()
+  mses <- c()
+  
+  for(k in seq(length(all_imputed))){
+    y_hat <- apply(x[[k]],1,function(int){ sum(int * cv_coef[-1])})
+    y_hat <- y_hat + cv_coef[1]
+    
+    rsquares <- c(rsquares, calc_r_square(y[[k]],y_hat))
+    mses <- c(mses, calc_mse(y[[k]],y_hat))
+  }
+  
+  r2 <- mean(rsquares)
+  mse <- mean(mses)
+  
+  tibble("predictor" = c('(Intercept)',unlist(strsplit(x = colnames(var_x),split = "___"))[seq(2,ncol(var_x)*2,by=2)]),
+         "value" = cv_coef,
+         "r_squared" = rep(r2,length(cv_coef)),
+         "mse" = rep(mse,length(cv_coef)),
+         "predictor_layer" = c('(Intercept)',unlist(strsplit(x = colnames(var_x),split = "___"))[seq(1,ncol(var_x)*2,by=2)])
+  )
+  
+}
+
+
+#' @rdname kimono Stack adaptive lasso
+#' @keywords internal
+#' @param y data.table - feature to predict
+#' @param X data.table - input features with prior names attached to features
+#' @param imputed_data - imputed data
+#' @param input_data - original input data with NAs
+#' @param ADW_calculation - if adaptive weight must be calculated
+#' @param nseeds - specifies how many iterations to run
+#' @return edge list for a given input y and x, and statistics on multiple runs
+
+galasso <- function(var_y,var_x,imputed_data,ADW_calculation,set_seed=1234){
+  #save(var_y,var_x,imputed_data,ADW_calculation,file='galasso_chechek.RData')
+  set.seed(set_seed)
+  
+  all_imputed <- list()
+  for(mat in seq(length(imputed_data[[1]]))){
+    tmp <- matrix()
+    for(layer in names(imputed_data)){
+      dat <- imputed_data[[layer]][[mat]]
+      colnames(dat) <- paste0(layer,'___',colnames(dat))
+      tmp <- cbind(tmp,dat)
+    }
+    all_imputed[[mat]] <- tmp[,-1]
+  }
+  
+  x <- list()
+  y <- list()
+  
+  for(dat in seq(length(all_imputed))){
+    pos_x <- which(colnames(all_imputed[[dat]]) %in% colnames(var_x))
+    x[[dat]] <- as.matrix(as.data.table(scale(all_imputed[[dat]][,pos_x])))
+    pos_y <- which(colnames(all_imputed[[dat]]) %in% colnames(var_y))
+    y[[dat]] <- as.vector(scale(all_imputed[[dat]][,pos_y]))
+  }
+  
+  pf <- rep(1, ncol(var_x))
+  adWeight <- rep(1, ncol(var_x))
+  fit <- cv.galasso(x, y, pf, adWeight,nlambda=50)
+  
+  if(ADW_calculation){
+    message("calculation adaptive weights")
+    cv_coef <- coef(fit)
+    
+    js <- rep(0,ncol(var_x))
+    for(int in seq(length(all_imputed))){
+      js <- cv_coef[[int]][-1]**2 + js
+    }
+    
+    v = log(ncol(var_x) * length(all_imputed))/log(nrow(var_x) * length(all_imputed))
+    
+    gamma = ceiling(2 * v/1 - v) + 1
+    
+    ai = (sqrt(js) + 1 / nrow(var_x) * length(all_imputed))**(-gamma)
+    
+    fit <- cv.galasso(x, y, pf, adWeight=ai,nlambda=50)
+    
+  }
+  
+  cv_coef <- coef(fit)
+  
+  beta_mean <- rep(0,ncol(var_x)+1)
+  for(init in seq(length(all_imputed))){
+    beta_mean <- cv_coef[[init]] + beta_mean
+  }
+  
+  
+  rsquares <- c()
+  mses <- c()
+  
+  for(k in seq(length(all_imputed))){
+    y_hat <- apply(x[[k]],1,function(int){ sum(int * cv_coef[[k]][-1])})
+    y_hat <- y_hat + cv_coef[[k]][1]
+    
+    rsquares <- c(rsquares, calc_r_square(y[[k]],y_hat))
+    mses <- c(mses, calc_mse(y[[k]],y_hat))
+  }
+  
+  r2 <- mean(rsquares)
+  mse <- mean(mses)
+  
+  tibble("predictor" = c('(Intercept)',unlist(strsplit(x = colnames(var_x),split = "___"))[seq(2,ncol(var_x)*2,by=2)]),
+         "value" = beta_mean,
+         "r_squared" = rep(r2,length(beta_mean)),
+         "mse" = rep(mse,length(beta_mean)),
+         "predictor_layer" = c('(Intercept)',unlist(strsplit(x = colnames(var_x),split = "___"))[seq(1,ncol(var_x)*2,by=2)])
+  )
+  
+}
 
 #' @rdname kimono  Calculate tau based on frobenius norm
 #' @keywords internal
