@@ -136,6 +136,7 @@ run_BDcoco <- function(x,y, nlambdas){
 #' @export
 #'
 #' @examples
+
 run_coco <-  function(x,y, nlambdas, fold_idx){
   cv_fit <- hmlasso::cv.hmlasso(x, y,nlambda=50, seed = 1234, lambda.min.ratio=1e-1,
                                 foldid=fold_idx, direct_prediction=TRUE,

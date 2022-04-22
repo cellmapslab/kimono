@@ -1,58 +1,46 @@
 <!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
 
 <meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
 
-<title>index.knit</title>
+<title>index.utf8</title>
 
-<script src="index_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="index_files/jquery-1.12.4/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="index_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
 <script src="index_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="index_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="index_files/bootstrap-3.3.5/shim/respond.min.js"></script>
-<style>h1 {font-size: 34px;}
-       h1.title {font-size: 38px;}
-       h2 {font-size: 30px;}
-       h3 {font-size: 24px;}
-       h4 {font-size: 18px;}
-       h5 {font-size: 16px;}
-       h6 {font-size: 12px;}
-       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
-       pre:not([class]) { background-color: white }</style>
 <script src="index_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
 <link href="index_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
 <script src="index_files/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="index_files/navigation-1.1/tabsets.js"></script>
 <link href="index_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="index_files/highlightjs-9.12.0/highlight.js"></script>
-<script src="index_files/htmlwidgets-1.5.4/htmlwidgets.js"></script>
+<script src="index_files/htmlwidgets-1.5.1/htmlwidgets.js"></script>
 <link href="index_files/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet" />
-<script src="index_files/datatables-binding-0.19/datatables.js"></script>
-<link href="index_files/dt-core-1.10.20/css/jquery.dataTables.min.css" rel="stylesheet" />
-<link href="index_files/dt-core-1.10.20/css/jquery.dataTables.extra.css" rel="stylesheet" />
-<script src="index_files/dt-core-1.10.20/js/jquery.dataTables.min.js"></script>
-<link href="index_files/crosstalk-1.1.1/css/crosstalk.css" rel="stylesheet" />
-<script src="index_files/crosstalk-1.1.1/js/crosstalk.min.js"></script>
-
-<style type="text/css">
-  code{white-space: pre-wrap;}
-  span.smallcaps{font-variant: small-caps;}
-  span.underline{text-decoration: underline;}
-  div.column{display: inline-block; vertical-align: top; width: 50%;}
-  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-  ul.task-list{list-style: none;}
-    </style>
+<script src="index_files/datatables-binding-0.10/datatables.js"></script>
+<link href="index_files/dt-core-1.10.19/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="index_files/dt-core-1.10.19/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="index_files/dt-core-1.10.19/js/jquery.dataTables.min.js"></script>
+<link href="index_files/crosstalk-1.0.0/css/crosstalk.css" rel="stylesheet" />
+<script src="index_files/crosstalk-1.0.0/js/crosstalk.min.js"></script>
 
 <style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
 <script type="text/javascript">
 if (window.hljs) {
   hljs.configure({languages: []});
@@ -65,7 +53,32 @@ if (window.hljs) {
 
 
 
-
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
 
 <link rel="stylesheet" href="style.css" type="text/css" />
 
@@ -76,6 +89,10 @@ if (window.hljs) {
   max-width: 940px;
   margin-left: auto;
   margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
 }
 img {
   max-width:100%;
@@ -92,9 +109,6 @@ button.code-folding-btn:focus {
 summary {
   display: list-item;
 }
-pre code {
-  padding: 0;
-}
 </style>
 
 
@@ -107,6 +121,7 @@ pre code {
   max-height: 500px;
   min-height: 44px;
   overflow-y: auto;
+  background: white;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
@@ -142,7 +157,6 @@ pre code {
   border: none;
   display: inline-block;
   border-radius: 4px;
-  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -232,7 +246,7 @@ div.tocify {
 
 
 <!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row">
+<div class="row-fluid">
 <div class="col-xs-12 col-sm-4 col-md-3">
 <div id="TOC" class="tocify">
 </div>
@@ -243,7 +257,7 @@ div.tocify {
 
 
 
-<div id="header">
+<div class="fluid-row" id="header">
 
 
 
@@ -252,7 +266,7 @@ KiMONo
 </div>
 Knowledge Guided Multi-Omic Network Inference</h1>
 <h4 class="date"><center>
-26 Oktober 2021
+22 April 2022
 </center></h4>
 
 </div>
@@ -428,42 +442,20 @@ legend(x=-1.5, y=-1.1, c(&quot;Genes&quot;,&quot;Proteins&quot;), pch=21,
 ## 
 ## 2) inference:
 ##  for layers  gene protein 
-## 2021-10-26 12:52:48 starting inference of  10  models
+## 2022-04-22 13:33:55 starting inference of  10  models
 ## 
   |                                                                            
   |                                                                      |   0%
-  |                                                                            
-  |=======                                                               |  10%
-  |                                                                            
-  |==============                                                        |  20%
-  |                                                                            
-  |=====================                                                 |  30%
-  |                                                                            
-  |============================                                          |  40%
-  |                                                                            
-  |===================================                                   |  50%
-  |                                                                            
-  |==========================================                            |  60%
-  |                                                                            
-  |=================================================                     |  70%
-  |                                                                            
-  |========================================================              |  80%
-  |                                                                            
-  |===============================================================       |  90%
-  |                                                                            
-  |======================================================================| 100%
 ## 
 ## 3) missing prior 
 ## phenotype 
 ## overall layer
-## 2021-10-26 12:52:52 starting inference of  1  models
+## 2022-04-22 13:33:57 starting inference of  1  models
 ## 
   |                                                                            
   |                                                                      |   0%
-  |                                                                            
-  |======================================================================| 100%
 ## 
-## Done 0.13 min</code></pre>
+## Done 0.05 min</code></pre>
 <pre class="r"><code>#plot network
 to_igraph(network) %&gt;% plot_kimono(title=&#39;KiMONo Network (directed)&#39;)</code></pre>
 <p><img src="index_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
@@ -484,8 +476,8 @@ to_igraph(network) %&gt;% plot_kimono(title=&#39;KiMONo Network (directed)&#39;)
 </ul>
 <p><br></p>
 <pre class="r"><code>DT::datatable(head(network), class = &#39;cell-border stripe&#39;)</code></pre>
-<div id="htmlwidget-2e46a7bf182049d417a2" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-2e46a7bf182049d417a2">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["gene_B","gene_B","gene_B","gene_B","gene_B","gene_B"],["(Intercept)","gene_A","gene_C","gene_D","gene_E","m"],[-8.51582596336706e-19,0,0,0.0622081704422632,0,0],[0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509],[0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681],["(Intercept)","gene","gene","gene","gene","protein"],["gene","gene","gene","gene","gene","gene"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>target<\/th>\n      <th>predictor<\/th>\n      <th>value<\/th>\n      <th>r_squared<\/th>\n      <th>mse<\/th>\n      <th>predictor_layer<\/th>\n      <th>target_layer<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-a42aa75ecd754738049c" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-a42aa75ecd754738049c">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["gene_B","gene_B","gene_B","gene_B","gene_B","gene_B"],["(Intercept)","gene_A","gene_C","gene_D","gene_E","m"],[-8.51582596336707e-19,0,0,0.0622081704422632,0,0],[0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509,0.123749997868509],[0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681,0.779065468367681],["(Intercept)","gene","gene","gene","gene","protein"],["gene","gene","gene","gene","gene","gene"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>target<\/th>\n      <th>predictor<\/th>\n      <th>value<\/th>\n      <th>r_squared<\/th>\n      <th>mse<\/th>\n      <th>predictor_layer<\/th>\n      <th>target_layer<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <div id="network-analysis" class="section level1">
@@ -597,6 +589,109 @@ plot(ig_network,
 <p><img src="index_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
 </div>
 </div>
+<div id="handling-missing-data" class="section level1">
+<h1>Handling missing data</h1>
+<p>KiMONo has integreated five additional lasso approaches to handle missingness in two different ways:</p>
+<ol style="list-style-type: decimal">
+<li>Two-steps approach based on prior imputation and late aggregation</li>
+<li>Direct missing data handle using inverse covariance approaches</li>
+</ol>
+<p>The next snipped code takes the input data used previously for KiMONo example and randomly removes the 5% of the data in the gene and protein matrices alike.</p>
+<pre class="r"><code>set.seed(1234)
+
+missingness &lt;- 0.05
+
+for(layer in c(&#39;gene&#39;,&#39;protein&#39;)){
+  dat &lt;- as.matrix(input_data[[layer]])
+  n &lt;- round(length(dat) * missingness)
+  positions_sample &lt;- sample(x = length(dat), size = n)
+  dat[positions_sample] &lt;- NA
+  input_data[[layer]] &lt;- setDT(as.data.frame(dat))
+}</code></pre>
+<div id="knn-imputation" class="section level2">
+<h2>kNN imputation</h2>
+<p>One of the imputation methods is based on k nearest neighbours averaging.</p>
+<pre class="r"><code>knn_imputed_data &lt;- knn_imputation(input_data,seed = 1234)</code></pre>
+<div id="knnkimono" class="section level3">
+<h3>knnKiMONo</h3>
+<p>KiMONo has been boosted to apply sparse group lasso over kNN imputed data (knnKiMONo)</p>
+<pre class="r"><code>knn_network &lt;- kimono(knn_imputed_data, prior_network,core = 2, infer_missing_prior = TRUE)</code></pre>
+<pre class="r"><code>to_igraph(knn_network) %&gt;% plot_kimono(title=&#39;knnKiMONo Network (directed)&#39;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<pre class="r"><code>to_igraph(knn_network, directed = F) %&gt;% plot_kimono(title=&#39;knnKiMONo Network (undirected)&#39;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-23-2.png" width="672" /></p>
+<pre class="r"><code>DT::datatable(head(knn_network), class = &#39;cell-border stripe&#39;)</code></pre>
+<div id="htmlwidget-bd2e110a50b0bcd0efa7" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-bd2e110a50b0bcd0efa7">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["gene_A","gene_A","gene_A","gene_A","gene_A","gene_A"],["(Intercept)","gene_B","gene_C","gene_D","gene_E","m"],[-3.13253488729794e-17,0,0,0,0,-0.0154658402548255],[0.000433575165190746,0.000433575165190746,0.000433575165190746,0.000433575165190746,0.000433575165190746,0.000433575165190746],[0.98072990097618,0.98072990097618,0.98072990097618,0.98072990097618,0.98072990097618,0.98072990097618],["(Intercept)","gene","gene","gene","gene","protein"],["gene","gene","gene","gene","gene","gene"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>target<\/th>\n      <th>predictor<\/th>\n      <th>value<\/th>\n      <th>r_squared<\/th>\n      <th>mse<\/th>\n      <th>predictor_layer<\/th>\n      <th>target_layer<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div id="multiple-imputation" class="section level2">
+<h2>Multiple imputation</h2>
+<p>Another two-step approach is based on multiple imputation. KiMONo is powered by <em>mice</em> R package and the prior network combined with Pearson correlation (ngMice) to improve the time perfomance. You can find more details about this method in <a href="https://www.biorxiv.org/content/10.1101/2022.04.14.488153v1.full.pdf">Henao et. al, 2022</a></p>
+<pre class="r"><code>ng_imputed_data &lt;- ngMice(input_data = input_data,prior_network = prior_network,m = 5)</code></pre>
+<div id="galasso" class="section level3">
+<h3>GALasso</h3>
+<p>Group Adaptive Lasso (GALasso), applies an adaptive weight for small regression coefficients and applies a group penalty as uniform variable selection across imputed datasates ( <a href="https://arxiv.org/pdf/2003.07398.pdf">Du et. al, 2020</a> ).</p>
+<pre class="r"><code>galasso_network &lt;- kimono(input_data, prior_network, ng_imputed_data, method = &#39;galasso&#39;, ADW_calculation = TRUE, core = 2, infer_missing_prior = TRUE)</code></pre>
+<pre class="r"><code>to_igraph(galasso_network) %&gt;% plot_kimono(title=&#39;GALasso Network (directed)&#39;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<pre class="r"><code>to_igraph(galasso_network, directed = F) %&gt;% plot_kimono(title=&#39;GALasso Network (undirected)&#39;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-26-2.png" width="672" /></p>
+<pre class="r"><code>DT::datatable(head(galasso_network), class = &#39;cell-border stripe&#39;)</code></pre>
+<div id="htmlwidget-72b3a4c681c61631a3ab" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-72b3a4c681c61631a3ab">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["gene_A","gene_A","gene_A","gene_A","gene_A","gene_A"],["(Intercept)","gene_B","gene_C","gene_D","gene_E","m"],[5.00060418140842e-18,0,0.564760957368457,0,0,0],[0.0130417027706918,0.0130417027706918,0.0130417027706918,0.0130417027706918,0.0130417027706918,0.0130417027706918],[0.964726570932006,0.964726570932006,0.964726570932006,0.964726570932006,0.964726570932006,0.964726570932006],["(Intercept)","gene","gene","gene","gene","protein"],["gene","gene","gene","gene","gene","gene"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>target<\/th>\n      <th>predictor<\/th>\n      <th>value<\/th>\n      <th>r_squared<\/th>\n      <th>mse<\/th>\n      <th>predictor_layer<\/th>\n      <th>target_layer<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="salasso" class="section level3">
+<h3>SALasso</h3>
+<p>Stack Adaptive Lasso (SALasso), it is the summation of the objective functions across imputed datasets and optimize them jointly. As equal as GALasso, adaptive weights can be calculated to penalize the smaller regression coefficients ( <a href="https://arxiv.org/pdf/2003.07398.pdf">Du et. al, 2020</a> ).</p>
+<pre class="r"><code>salasso_network &lt;- kimono(input_data, prior_network, ng_imputed_data, method = &#39;salasso&#39;, ADW_calculation = TRUE, core = 2, infer_missing_prior = TRUE)</code></pre>
+<pre class="r"><code>to_igraph(salasso_network) %&gt;% plot_kimono(title=&#39;SALasso Network (directed)&#39;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<pre class="r"><code>to_igraph(salasso_network, directed = F) %&gt;% plot_kimono(title=&#39;SALasso Network (undirected)&#39;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-28-2.png" width="672" /></p>
+<pre class="r"><code>DT::datatable(head(salasso_network), class = &#39;cell-border stripe&#39;)</code></pre>
+<div id="htmlwidget-ec09f50a30057736b68a" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-ec09f50a30057736b68a">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["gene_B","gene_B","gene_B","gene_B","gene_B","gene_B"],["(Intercept)","gene_A","gene_C","gene_D","gene_E","m"],[-4.9889903700462e-17,0,0,0.131767291661218,0,0],[0.216312731733297,0.216312731733297,0.216312731733297,0.216312731733297,0.216312731733297,0.216312731733297],[0.759838764972463,0.759838764972463,0.759838764972463,0.759838764972463,0.759838764972463,0.759838764972463],["(Intercept)","gene","gene","gene","gene","protein"],["gene","gene","gene","gene","gene","gene"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>target<\/th>\n      <th>predictor<\/th>\n      <th>value<\/th>\n      <th>r_squared<\/th>\n      <th>mse<\/th>\n      <th>predictor_layer<\/th>\n      <th>target_layer<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div id="inverse-covariance-estimation" class="section level2">
+<h2>Inverse covariance estimation</h2>
+<div id="cocolasso" class="section level3">
+<h3>CoCoLasso</h3>
+<p>Convex Contained Lasso (CoCoLasso) allows the calculation of coefficients through the sample covariant matrix of X and the sample vector of X and <em>y</em> calculation. Furthermore, to avoid problems related to negative eigenvector and no-convexing optimization solutions, this method used an alternating direction methods of multipliers algorithm ( <a href="https://arxiv.org/pdf/1811.00255.pdf">Takada et. al, 2019</a> ).</p>
+<pre class="r"><code>coco_network &lt;- kimono(input_data, prior_network, method = &#39;lasso_coco&#39;, core = 2, infer_missing_prior = TRUE)</code></pre>
+<pre class="r"><code>to_igraph(coco_network) %&gt;% plot_kimono(title=&#39;CoCoLasso Network (directed)&#39;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-30-1.png" width="672" /></p>
+<pre class="r"><code>to_igraph(coco_network, directed = F) %&gt;% plot_kimono(title=&#39;CoCoLasso Network (undirected)&#39;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-30-2.png" width="672" /></p>
+<pre class="r"><code>DT::datatable(head(coco_network), class = &#39;cell-border stripe&#39;)</code></pre>
+<div id="htmlwidget-63b2a2bc38f7b4218dc8" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-63b2a2bc38f7b4218dc8">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["gene_B","gene_B","gene_B","gene_B","gene_B","gene_B"],["(Intercept)","gene_A","gene_C","gene_D","gene_E","m"],[-3.23716284020218e-17,0,0,0.100905255577112,0,0],[0.141385888527692,0.141385888527692,0.141385888527692,0.141385888527692,0.141385888527692,0.141385888527692],[0.759026856209022,0.759026856209022,0.759026856209022,0.759026856209022,0.759026856209022,0.759026856209022],["(Intercept)","gene","gene","gene","gene","protein"],["gene","gene","gene","gene","gene","gene"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>target<\/th>\n      <th>predictor<\/th>\n      <th>value<\/th>\n      <th>r_squared<\/th>\n      <th>mse<\/th>\n      <th>predictor_layer<\/th>\n      <th>target_layer<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="hmlasso" class="section level3">
+<h3>HMLasso</h3>
+<p>Lasso with High Missing rate (HMLasso) is a method proposed as a weighted version of CoCoLasso to avoid the problem of no positive semifinite (PSD) matrix aggregating a covariant matrix calculated from mean imputation matrix. The combination of both allows a low-biased but PSD covariant matrix. To improve the Lasso model optimization, a weighted Frobenius norm is added with alpha higher or equal to zero ( <a href="https://arxiv.org/pdf/1811.00255.pdf">Takada et. al, 2019</a> ).</p>
+<pre class="r"><code>hm_network &lt;- kimono(input_data, prior_network, method = &#39;lasso_hm&#39;, core = 2, infer_missing_prior = TRUE)</code></pre>
+<pre class="r"><code>to_igraph(hm_network) %&gt;% plot_kimono(title=&#39;HMLasso Network (directed)&#39;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+<pre class="r"><code>to_igraph(hm_network, directed = F) %&gt;% plot_kimono(title=&#39;HMLasso Network (undirected)&#39;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-32-2.png" width="672" /></p>
+<pre class="r"><code>DT::datatable(head(hm_network), class = &#39;cell-border stripe&#39;)</code></pre>
+<div id="htmlwidget-f0ae66f3f5cbe447639e" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-f0ae66f3f5cbe447639e">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["gene_B","gene_B","gene_B","gene_B","gene_B","gene_B"],["(Intercept)","gene_A","gene_C","gene_D","gene_E","m"],[-3.23716284020218e-17,0,0,0.100905255577112,0,0],[0.141385888527692,0.141385888527692,0.141385888527692,0.141385888527692,0.141385888527692,0.141385888527692],[0.759026856209022,0.759026856209022,0.759026856209022,0.759026856209022,0.759026856209022,0.759026856209022],["(Intercept)","gene","gene","gene","gene","protein"],["gene","gene","gene","gene","gene","gene"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>target<\/th>\n      <th>predictor<\/th>\n      <th>value<\/th>\n      <th>r_squared<\/th>\n      <th>mse<\/th>\n      <th>predictor_layer<\/th>\n      <th>target_layer<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="bdcocolasso" class="section level3">
+<h3>BDCoCoLasso</h3>
+<p>Block-Descent CoCoLasso (BDCoCoLasso) is another alternative for CoCoLasso adding block-coordinate descent to deal with the partial corrupted covariant matrices across the convex optimization ( <a href="https://onlinelibrary.wiley.com/doi/epdf/10.1002/gepi.22430">Escribe et. al, 2021</a> ).</p>
+<pre class="r"><code>bdcoco_network &lt;- kimono(input_data, prior_network, method = &#39;lasso_BDcoco&#39;, core = 2, infer_missing_prior = TRUE)</code></pre>
+<pre class="r"><code>to_igraph(bdcoco_network) %&gt;% plot_kimono(title=&#39;BDCoCoLasso Network (directed)&#39;)</code></pre>
+<p><img src="index_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
+<pre class="r"><code>DT::datatable(head(bdcoco_network), class = &#39;cell-border stripe&#39;)</code></pre>
+<div id="htmlwidget-1117bb45d978f40a4022" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1117bb45d978f40a4022">{"x":{"filter":"none","data":[["1","2","3","4","5","6"],["gene_D","gene_D","gene_D","gene_D","gene_D","gene_D"],["(Intercept)","z","gene_A","gene_B","gene_C","gene_E"],[0,-0.15044632662709,0,0.121561140990565,0,0],[null,null,null,null,null,null],[null,null,null,null,null,null],["(Intercept)","phenotype","gene","gene","gene","gene"],["gene","gene","gene","gene","gene","gene"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>target<\/th>\n      <th>predictor<\/th>\n      <th>value<\/th>\n      <th>r_squared<\/th>\n      <th>mse<\/th>\n      <th>predictor_layer<\/th>\n      <th>target_layer<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":[3,4,5]},{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</div>
 <div id="troubleshooting" class="section level1">
 <h1>Troubleshooting</h1>
 <hr />
@@ -656,7 +751,7 @@ library(kimono)</code></pre>
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();
@@ -674,7 +769,7 @@ $(document).ready(function () {
 
 $(document).ready(function () {
   $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open');
+    $(this).parent().toggleClass('nav-tabs-open')
   });
 });
 </script>
@@ -683,9 +778,6 @@ $(document).ready(function () {
 
 <script>
 $(document).ready(function ()  {
-
-    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
-    $('.unlisted.unnumbered').addClass('toc-ignore')
 
     // move toc-ignore selectors from section div to header
     $('div.section.toc-ignore')
@@ -698,7 +790,7 @@ $(document).ready(function ()  {
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
       },
       ignoreSelector: ".toc-ignore",
       scrollTo: 0

@@ -311,7 +311,130 @@ plot(ig_network,
 
 ```
 
+# Handling missing data
 
+KiMONo has integreated five additional lasso approaches to handle missingness in two different ways:
+
+1. Two-steps approach based on prior imputation and late aggregation
+2. Direct missing data handle using inverse covariance approaches
+
+The next snipped code takes the input data used previously for KiMONo example and randomly removes the 5% of the data in the gene and protein matrices alike.
+
+```{r, warning=FALSE,message=FALSE}
+set.seed(1234)
+
+missingness <- 0.05
+
+for(layer in c('gene','protein')){
+  dat <- as.matrix(input_data[[layer]])
+  n <- round(length(dat) * missingness)
+  positions_sample <- sample(x = length(dat), size = n)
+  dat[positions_sample] <- NA
+  input_data[[layer]] <- setDT(as.data.frame(dat))
+}
+```
+
+## kNN imputation
+
+One of the imputation methods is based on k nearest neighbours averaging.
+
+```{r, warning=FALSE,message=FALSE}
+knn_imputed_data <- knn_imputation(input_data,seed = 1234)
+```
+
+### knnKiMONo
+
+KiMONo has been boosted to apply sparse group lasso over kNN imputed data (knnKiMONo)
+
+```{r,warning=FALSE,results='hide'}
+knn_network <- kimono(knn_imputed_data, prior_network,core = 2, infer_missing_prior = TRUE)
+```
+
+```{r, warning=FALSE}
+to_igraph(knn_network) %>% plot_kimono(title='knnKiMONo Network (directed)')
+to_igraph(knn_network, directed = F) %>% plot_kimono(title='knnKiMONo Network (undirected)')
+DT::datatable(head(knn_network), class = 'cell-border stripe')
+```
+
+## Multiple imputation
+
+Another two-step approach is based on multiple imputation. KiMONo is powered by *mice* R package and the prior network combined with Pearson correlation (ngMice) to improve the time perfomance. You can find more details about this method in [Henao et. al, 2022](https://www.biorxiv.org/content/10.1101/2022.04.14.488153v1.full.pdf)
+
+```{r,warning=FALSE,results='hide'}
+ng_imputed_data <- ngMice(input_data = input_data,prior_network = prior_network,m = 5)
+```
+
+### GALasso
+
+Group Adaptive Lasso (GALasso), applies an adaptive weight for small regression coefficients and applies a group penalty as uniform variable selection across imputed datasates ( [Du et. al, 2020](https://arxiv.org/pdf/2003.07398.pdf) ).
+
+```{r, warnings=FALSE,results='hide',message=FALSE}
+galasso_network <- kimono(input_data, prior_network, ng_imputed_data, method = 'galasso', ADW_calculation = TRUE, core = 2, infer_missing_prior = TRUE)
+```
+
+```{r,warning=FALSE}
+to_igraph(galasso_network) %>% plot_kimono(title='GALasso Network (directed)')
+to_igraph(galasso_network, directed = F) %>% plot_kimono(title='GALasso Network (undirected)')
+DT::datatable(head(galasso_network), class = 'cell-border stripe')
+```
+
+### SALasso
+
+Stack Adaptive Lasso (SALasso), it is the summation of the objective functions across imputed datasets and optimize them jointly. As equal as GALasso, adaptive weights can be calculated to penalize the smaller regression coefficients ( [Du et. al, 2020](https://arxiv.org/pdf/2003.07398.pdf) ).
+
+```{r, warnings=FALSE,results='hide',message=FALSE}
+salasso_network <- kimono(input_data, prior_network, ng_imputed_data, method = 'salasso', ADW_calculation = TRUE, core = 2, infer_missing_prior = TRUE)
+```
+
+```{r,warning=FALSE}
+to_igraph(salasso_network) %>% plot_kimono(title='SALasso Network (directed)')
+to_igraph(salasso_network, directed = F) %>% plot_kimono(title='SALasso Network (undirected)')
+DT::datatable(head(salasso_network), class = 'cell-border stripe')
+```
+
+## Inverse covariance estimation
+
+
+### CoCoLasso
+
+Convex Contained Lasso (CoCoLasso) allows the calculation of coefficients through the sample covariant matrix of X and the sample vector of X and *y* calculation. Furthermore, to avoid problems related to negative eigenvector and no-convexing optimization solutions, this method used an alternating direction methods of multipliers algorithm ( [Takada et. al, 2019](https://arxiv.org/pdf/1811.00255.pdf) ).
+
+```{r,results='hide'}
+coco_network <- kimono(input_data, prior_network, method = 'lasso_coco', core = 2, infer_missing_prior = TRUE)
+```
+
+```{r,warning=FALSE}
+to_igraph(coco_network) %>% plot_kimono(title='CoCoLasso Network (directed)')
+to_igraph(coco_network, directed = F) %>% plot_kimono(title='CoCoLasso Network (undirected)')
+DT::datatable(head(coco_network), class = 'cell-border stripe')
+```
+
+### HMLasso
+
+Lasso with High Missing rate (HMLasso) is a method proposed as a weighted version of CoCoLasso to avoid the problem of no positive semifinite (PSD) matrix aggregating a covariant matrix calculated from mean imputation matrix. The combination of both allows a low-biased but PSD covariant matrix. To improve the Lasso model optimization, a weighted Frobenius norm is added with alpha higher or equal to zero ( [Takada et. al, 2019](https://arxiv.org/pdf/1811.00255.pdf) ).
+
+```{r,results='hide'}
+hm_network <- kimono(input_data, prior_network, method = 'lasso_hm', core = 2, infer_missing_prior = TRUE)
+```
+
+```{r,warning=FALSE}
+to_igraph(hm_network) %>% plot_kimono(title='HMLasso Network (directed)')
+to_igraph(hm_network, directed = F) %>% plot_kimono(title='HMLasso Network (undirected)')
+DT::datatable(head(hm_network), class = 'cell-border stripe')
+```
+
+### BDCoCoLasso
+
+Block-Descent CoCoLasso (BDCoCoLasso) is another alternative for CoCoLasso adding block-coordinate descent to deal with the partial corrupted covariant matrices across the convex optimization ( [Escribe et. al, 2021](https://onlinelibrary.wiley.com/doi/epdf/10.1002/gepi.22430) ).
+
+```{r,results='hide'}
+bdcoco_network <- kimono(input_data, prior_network, method = 'lasso_BDcoco', core = 2, infer_missing_prior = TRUE)
+```
+
+```{r,warning=FALSE}
+to_igraph(bdcoco_network) %>% plot_kimono(title='BDCoCoLasso Network (directed)')
+DT::datatable(head(bdcoco_network), class = 'cell-border stripe')
+```
 
 # Troubleshooting
 ***
