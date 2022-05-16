@@ -200,7 +200,7 @@ kimono <- function(input_data, prior_network, imputed_data = NULL, method = 'sgl
 
 
         idx_col <- c('target','predictor','target_layer','predictor_layer')
-        intra_map <- intra_map[,idx_col]
+        intra_map <- intra_map[,..idx_col]
         colnames(intra_map) <- c('A','B','layer_A','layer_B')
       }
 
@@ -210,7 +210,7 @@ kimono <- function(input_data, prior_network, imputed_data = NULL, method = 'sgl
 
       idx_col <- c('target','predictor','target_layer','predictor_layer')
 
-      tmp <- filter(result,idx_row)[,idx_col]
+      tmp <- filter(result,idx_row)[,..idx_col]
       colnames(tmp) <- c('A','B','layer_A','layer_B')
 
       prior_network_new <- create_prior_network(rbind(tmp,intra_map))
