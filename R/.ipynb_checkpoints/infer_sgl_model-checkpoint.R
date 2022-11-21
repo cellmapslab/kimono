@@ -294,10 +294,8 @@ galasso <- function(var_y,var_x,imputed_data,ADW_calculation,set_seed=1234){
   y <- list()
   
   for(dat in seq(length(all_imputed))){
-    pos_x <- which(colnames(all_imputed[[dat]]) %in% colnames(var_x))
-    x[[dat]] <- as.matrix(as.data.table(scale(all_imputed[[dat]][,pos_x])))
-    pos_y <- which(colnames(all_imputed[[dat]]) %in% colnames(var_y))
-    y[[dat]] <- as.vector(scale(all_imputed[[dat]][,pos_y]))
+    x[[dat]] <- as.matrix(as.data.table(scale(all_imputed[[dat]][,colnames(var_x)])))
+    y[[dat]] <- as.vector(scale(all_imputed[[dat]][,colnames(var_y)]))
   }
   
   pf <- rep(1, ncol(var_x))
@@ -308,15 +306,8 @@ galasso <- function(var_y,var_x,imputed_data,ADW_calculation,set_seed=1234){
     message("calculation adaptive weights")
     cv_coef <- coef(fit)
     
-    if(is.list(cv_coef)){
-      js <- rep(0,ncol(var_x))
-      for(int in seq(length(all_imputed))){
-        js <- cv_coef[[int]][-1]**2 + js
-      }
-    }else{
-      js <- rep(0,ncol(var_x))
-      js <- cv_coef[-1]**2 + js
-    }
+    js <- rep(0,ncol(var_x))
+    js <- cv_coef[-1]**2 + js
     
     v = log(ncol(var_x) * length(all_imputed))/log(nrow(var_x) * length(all_imputed))
     
@@ -330,35 +321,19 @@ galasso <- function(var_y,var_x,imputed_data,ADW_calculation,set_seed=1234){
   
   cv_coef <- coef(fit)
   
-  if(is.list(cv_coef)){
-    beta_mean <- rep(0,ncol(var_x)+1)
-    for(init in seq(length(all_imputed))){
-      beta_mean <- cv_coef[[init]] + beta_mean
-    }
-  }else{
-    beta_mean <- rep(0,ncol(var_x)+1)
-    beta_mean <- cv_coef + beta_mean 
-  }
+  beta_mean <- rep(0,ncol(var_x)+1)
+  beta_mean <- cv_coef + beta_mean
+  
   
   rsquares <- c()
   mses <- c()
   
-  if(is.list(cv_coef)){
-    for(k in seq(length(all_imputed))){
-      y_hat <- apply(x[[k]],1,function(int){ sum(int * cv_coef[[k]][-1])})
-      y_hat <- y_hat + cv_coef[[k]][1]
-      
-      rsquares <- c(rsquares, calc_r_square(y[[k]],y_hat))
-      mses <- c(mses, calc_mse(y[[k]],y_hat))
-    }
-  }else{
-    for(k in seq(length(all_imputed))){
-      y_hat <- apply(x[[k]],1,function(int){ sum(int * cv_coef[-1])})
-      y_hat <- y_hat + cv_coef[1]
-      
-      rsquares <- c(rsquares, calc_r_square(y[[k]],y_hat))
-      mses <- c(mses, calc_mse(y[[k]],y_hat))
-    }
+  for(k in seq(length(all_imputed))){
+    y_hat <- apply(x[[k]],1,function(int){ sum(int * cv_coef[-1])})
+    y_hat <- y_hat + cv_coef[1]
+    
+    rsquares <- c(rsquares, calc_r_square(y[[k]],y_hat))
+    mses <- c(mses, calc_mse(y[[k]],y_hat))
   }
   
   r2 <- mean(rsquares)
